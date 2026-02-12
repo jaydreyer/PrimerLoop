@@ -1,57 +1,39 @@
 # PrimerLoop
 
-## Project Description
+PrimerLoop is a mobile-first PWA for structured learning with short lessons, active recall quizzes, spaced repetition, and a personal notebook.
 
-PrimerLoop is a mobile-first PWA for structured learning using short lessons, active recall quizzes, spaced repetition, and a personal notebook. The current curriculum starts with AI & LLM Systems, but the architecture supports multiple subjects.
+## Product Principles
 
-## Setup Steps
+- One focused daily session (10-15 minutes)
+- Structured learning via concept graph + learner model
+- Calm, readable UX (not gamified noise)
+- Low-cost LLM usage through caching and bounded generation
 
-1. Clone the repository.
-2. Copy environment template:
-   - `cp .env.example .env.local`
-3. Install dependencies (inside app folder):
-   - `cd primerloop && npm install`
-4. Start the dev server:
-   - `npm run dev`
+## Core Engines
 
-## Supabase Setup
+1. Concept graph (curriculum structure)
+2. Learner model (mastery + review scheduling)
+3. Daily loop (lesson -> quiz -> mastery update -> notebook)
 
-1. Create a Supabase project.
-2. Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` in `.env.local`.
-3. Run SQL in order from `/primerloop/supabase`:
-   - `schema.sql`
-   - `rls.sql`
-   - `seed.sql`
-4. Verify RLS is enabled and policies are applied.
+## Domain Rules
 
-## Environment Variables
+- Mastery levels: `0 Unseen`, `1 Learning`, `2 Improving`, `3 Solid`
+- Review intervals: `Learning +2d`, `Improving +5d`, `Solid +14d`
+- Daily session composition:
+  - `1` new concept (if prerequisites are met)
+  - `0-2` review concepts due
+  - `6-10` quiz questions total
+- Default track weighting: `70%` LLM app, `30%` core tech
 
-Defined in `.env.example`:
+## Cost Constraints
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `LLM_API_KEY`
-- `LLM_MODEL` (default: `gpt-4.1-mini`)
-- `ADMIN_API_KEY`
+- Cache lessons by `(concept, difficulty)`
+- Cache quizzes by `(concept, difficulty, version)`
+- Use LLM grader only for short answers
+- Keep lessons under `450` words
+- Keep quizzes under `10` questions
 
-## Dev Commands
+## Scope
 
-Run from `/Users/jaydreyer/projects/PrimerLoop/primerloop`:
-
-- `npm install` — install dependencies
-- `npm run dev` — run local development server
-- `npm run build` — production build
-- `npm run start` — run production server
-- `npm run lint` — lint codebase
-
-## Deployment Steps
-
-1. Set production environment variables in your hosting platform.
-2. Provision production Supabase and apply:
-   - `/primerloop/supabase/schema.sql`
-   - `/primerloop/supabase/rls.sql`
-   - `/primerloop/supabase/seed.sql`
-3. Build and deploy the app from `primerloop/`.
-4. Configure `ADMIN_API_KEY` for admin cache-population routes.
-5. Smoke test key routes after deploy (`/today`, session APIs, admin cache routes).
+MVP excludes video, social features, leaderboards, and payments.
+Architecture is designed for multiple subjects and future curriculum bundles.
