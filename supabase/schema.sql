@@ -63,14 +63,31 @@ create table if not exists session_concepts (
   primary key (session_id, concept_id)
 );
 
+-- Deprecated for MVP persistence. Kept as reserved schema for potential
+-- per-question history/event logging in a future iteration.
 create table if not exists quiz_attempts (
   id uuid primary key default gen_random_uuid(),
   session_id uuid not null references sessions(id) on delete cascade,
   user_id uuid not null references auth.users(id) on delete cascade,
+  score_total numeric(6,3) not null,
+  score_max numeric(6,3) not null,
+  percent numeric(5,2) not null,
+  answers jsonb not null,
+  results jsonb not null,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists quiz_submissions (
+  id uuid primary key default gen_random_uuid(),
+  session_id uuid not null references sessions(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  subject_id uuid not null references subjects(id) on delete cascade,
   concept_id uuid not null references concepts(id) on delete cascade,
-  question_type text not null,
-  is_correct boolean,
-  score numeric(4,3),
+  score_total numeric(6,3) not null,
+  score_max numeric(6,3) not null,
+  percent numeric(5,2) not null,
+  answers jsonb not null,
+  results jsonb not null,
   created_at timestamptz not null default now()
 );
 

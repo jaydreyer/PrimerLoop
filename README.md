@@ -37,3 +37,21 @@ PrimerLoop is a mobile-first PWA for structured learning with short lessons, act
 
 MVP excludes video, social features, leaderboards, and payments.
 Architecture is designed for multiple subjects and future curriculum bundles.
+
+## Environment Variables
+
+Set these in `.env.local`:
+
+- `NEXT_PUBLIC_SUPABASE_URL`: Supabase project URL for browser + server anon client.
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: public anon key used by browser auth/session flows.
+- `SUPABASE_SERVICE_ROLE_KEY`: server-only key for admin cache writes.
+- `LLM_API_KEY`: server-only key for lesson/quiz generation and short-answer grading.
+- `LLM_MODEL`: model id for generation/grading, default `gpt-4.1-mini`.
+- `ADMIN_API_KEY`: server-only shared secret required by admin cache routes (`x-admin-api-key`).
+
+## Secret Safety
+
+- Never commit real secrets to source control.
+- Keep secret keys only in `.env.local` (and deployment secret managers in prod).
+- Do not expose `SUPABASE_SERVICE_ROLE_KEY`, `LLM_API_KEY`, or `ADMIN_API_KEY` in client code.
+- Restart the dev server after changing `.env.local`.

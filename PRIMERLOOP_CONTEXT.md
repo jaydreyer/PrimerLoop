@@ -77,6 +77,17 @@ Solid → +14 days
 
 ---
 
+## Quiz Persistence Model
+
+- `quiz_submissions` is the authoritative quiz result record used by API/UI.
+- One row is stored per submission with:
+  - `session_id`, `user_id`, `subject_id`, `concept_id`
+  - `score_total`, `score_max`, `percent`
+  - `answers` (jsonb), `results` (jsonb), `created_at`
+- `quiz_attempts` is deprecated/reserved for possible future per-question event history and is not used by current MVP flows.
+
+---
+
 ## Daily Session Rules
 
 Each day:

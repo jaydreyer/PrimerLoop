@@ -6,6 +6,7 @@ alter table user_settings enable row level security;
 alter table sessions enable row level security;
 alter table session_concepts enable row level security;
 alter table quiz_attempts enable row level security;
+alter table quiz_submissions enable row level security;
 alter table notebook_entries enable row level security;
 alter table generated_assets enable row level security;
 
@@ -62,10 +63,24 @@ create policy "session_concepts_owner"
     )
   );
 
+-- quiz_attempts is deprecated for current UI flow. Keep table inaccessible
+-- by default under RLS (no active client policies).
 drop policy if exists "quiz_attempts_owner" on quiz_attempts;
-create policy "quiz_attempts_owner"
-  on quiz_attempts for all
-  using (auth.uid() = user_id)
+drop policy if exists "quiz_attempts_select_owner" on quiz_attempts;
+drop policy if exists "quiz_attempts_insert_owner" on quiz_attempts;
+drop policy if exists "quiz_attempts_update_owner" on quiz_attempts;
+drop policy if exists "quiz_attempts_delete_owner" on quiz_attempts;
+
+drop policy if exists "quiz_submissions_owner" on quiz_submissions;
+drop policy if exists "quiz_submissions_select_owner" on quiz_submissions;
+drop policy if exists "quiz_submissions_insert_owner" on quiz_submissions;
+
+create policy "quiz_submissions_select_owner"
+  on quiz_submissions for select
+  using (auth.uid() = user_id);
+
+create policy "quiz_submissions_insert_owner"
+  on quiz_submissions for insert
   with check (auth.uid() = user_id);
 
 drop policy if exists "notebook_entries_owner" on notebook_entries;

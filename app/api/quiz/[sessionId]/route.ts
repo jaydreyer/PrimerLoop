@@ -1,16 +1,16 @@
 import { NextResponse } from "next/server";
-import { createSupabaseUserServer } from "../../../../lib/supabaseUserServer";
 import {
-  generateLessonContent,
-  getCachedLesson,
-  LessonContentSchema,
-  type LessonContent,
+  generateQuizContent,
+  getCachedQuiz,
+  QuizContentSchema,
+  type QuizContent,
 } from "../../../../lib/llm";
 import { requireAdminApiKey } from "../../../../lib/env.server";
+import { createSupabaseUserServer } from "../../../../lib/supabaseUserServer";
 import type { SessionRow } from "../../../../lib/types";
 
 type RouteParams = {
-  params: Promise<{ id: string }>;
+  params: Promise<{ sessionId: string }>;
 };
 
 export async function GET(request: Request, { params }: RouteParams) {
@@ -23,11 +23,11 @@ export async function GET(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { id } = await params;
+  const { sessionId } = await params;
   const { data: session, error: sessionError } = await supabase
     .from("sessions")
     .select("id, user_id, subject_id, concept_id, difficulty")
-    .eq("id", id)
+    .eq("id", sessionId)
     .eq("user_id", user.id)
     .maybeSingle<SessionRow>();
 
@@ -43,7 +43,7 @@ export async function GET(request: Request, { params }: RouteParams) {
     return NextResponse.json(
       {
         error:
-          "Session metadata missing (subject_id, concept_id, or difficulty). Backfill sessions or seed subjects/concepts before loading lessons.",
+          "Session metadata missing (subject_id, concept_id, or difficulty). Backfill sessions or seed subjects/concepts before loading quizzes.",
       },
       { status: 500 },
     );
@@ -59,60 +59,64 @@ export async function GET(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: conceptError?.message ?? "Concept not found" }, { status: 500 });
   }
 
-  const subjectId = session.subject_id;
-  const difficulty = session.difficulty;
-  const lessonVersion = 1;
   const { data: subject } = await supabase
     .from("subjects")
     .select("name")
-    .eq("id", subjectId)
+    .eq("id", session.subject_id)
     .maybeSingle<{ name: string }>();
 
-  let lesson: LessonContent | null = null;
-  const cached = await getCachedLesson(subjectId, concept.id, difficulty, lessonVersion);
-  if (cached) {
-    const cachedLesson = LessonContentSchema.safeParse(cached);
-    if (cachedLesson.success) {
-      lesson = cachedLesson.data;
+  const quizVersion = 1;
+  let quiz: QuizContent | null = null;
+  const cachedQuiz = await getCachedQuiz(
+    session.subject_id,
+    session.concept_id,
+    session.difficulty,
+    quizVersion,
+  );
+
+  if (cachedQuiz) {
+    const parsedCached = QuizContentSchema.safeParse(cachedQuiz);
+    if (parsedCached.success) {
+      quiz = parsedCached.data;
     }
   }
 
-  if (lesson) {
+  if (quiz) {
     return NextResponse.json(
       {
         sessionId: session.id,
-        concept: { id: concept.id, name: concept.title },
-        lesson,
+        concept: { id: concept.id, title: concept.title },
+        quiz,
         cached: true,
       },
       { status: 200 },
     );
   }
 
-  const generatedLesson = await generateLessonContent({
+  const generatedQuiz = await generateQuizContent({
     conceptName: concept.title,
-    difficulty,
+    difficulty: session.difficulty,
     subjectName: subject?.name ?? "Current Subject",
   });
+  const parsedGenerated = QuizContentSchema.safeParse(generatedQuiz);
 
-  const validatedGenerated = LessonContentSchema.safeParse(generatedLesson);
-  if (!validatedGenerated.success) {
-    return NextResponse.json({ error: "Generated lesson did not match schema" }, { status: 500 });
+  if (!parsedGenerated.success) {
+    return NextResponse.json({ error: "Generated quiz did not match schema" }, { status: 500 });
   }
 
   const adminApiKey = requireAdminApiKey();
-  const cacheWriteResponse = await fetch(new URL("/api/admin/cache/lesson", request.url), {
+  const cacheWriteResponse = await fetch(new URL("/api/admin/cache/quiz", request.url), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "x-admin-api-key": adminApiKey,
     },
     body: JSON.stringify({
-      subjectId,
-      conceptId: concept.id,
-      difficulty,
-      version: lessonVersion,
-      content: validatedGenerated.data,
+      subjectId: session.subject_id,
+      conceptId: session.concept_id,
+      difficulty: session.difficulty,
+      version: quizVersion,
+      content: parsedGenerated.data,
     }),
     cache: "no-store",
   });
@@ -120,7 +124,7 @@ export async function GET(request: Request, { params }: RouteParams) {
   if (!cacheWriteResponse.ok) {
     const errorText = await cacheWriteResponse.text();
     return NextResponse.json(
-      { error: `Failed to store lesson cache: ${errorText || cacheWriteResponse.statusText}` },
+      { error: `Failed to store quiz cache: ${errorText || cacheWriteResponse.statusText}` },
       { status: 500 },
     );
   }
@@ -128,8 +132,8 @@ export async function GET(request: Request, { params }: RouteParams) {
   return NextResponse.json(
     {
       sessionId: session.id,
-      concept: { id: concept.id, name: concept.title },
-      lesson: validatedGenerated.data,
+      concept: { id: concept.id, title: concept.title },
+      quiz: parsedGenerated.data,
       cached: false,
     },
     { status: 200 },
