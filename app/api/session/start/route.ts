@@ -19,11 +19,15 @@ export async function POST(request: Request) {
   }
 
   let body: unknown = {};
-  if ((request.headers.get("content-type") ?? "").includes("application/json")) {
-    try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  const contentType = request.headers.get("content-type") ?? "";
+  if (contentType.includes("application/json")) {
+    const rawBody = await request.text();
+    if (rawBody.trim().length > 0) {
+      try {
+        body = JSON.parse(rawBody);
+      } catch {
+        return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+      }
     }
   }
 
