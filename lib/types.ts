@@ -35,6 +35,14 @@ export type UserSettings = {
   dailyMinutes: number;
 };
 
+export type SessionRow = {
+  id: string;
+  user_id: string;
+  subject_id: string | null;
+  concept_id: string | null;
+  difficulty: Difficulty | null;
+};
+
 export type QuestionAllocation = {
   conceptId: string;
   questionCount: number;

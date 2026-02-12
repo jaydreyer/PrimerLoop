@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseUserServer } from "../../../../lib/supabaseUserServer";
+import type { Difficulty } from "../../../../lib/types";
 
 const sessionStartBodySchema = z
   .object({
@@ -59,12 +60,57 @@ export async function POST(request: Request) {
     return NextResponse.json({ sessionId: existing.id, existing: true }, { status: 200 });
   }
 
+  // Deterministic temporary concept selection for scaffolded sessions.
+  let selectedSubjectId: string | null = null;
+  let selectedConcept: { id: string; difficulty: Difficulty } | null = null;
+
+  const { data: userSettings } = await supabase
+    .from("user_settings")
+    .select("subject_id")
+    .eq("user_id", user.id)
+    .maybeSingle<{ subject_id: string }>();
+
+  selectedSubjectId = userSettings?.subject_id ?? null;
+
+  if (!selectedSubjectId) {
+    const { data: defaultSubject } = await supabase
+      .from("subjects")
+      .select("id")
+      .eq("slug", "ai-llm-systems")
+      .maybeSingle<{ id: string }>();
+    selectedSubjectId = defaultSubject?.id ?? null;
+  }
+
+  if (selectedSubjectId) {
+    const { data: firstConcept } = await supabase
+      .from("concepts")
+      .select("id, difficulty")
+      .eq("subject_id", selectedSubjectId)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle<{ id: string; difficulty: Difficulty }>();
+    selectedConcept = firstConcept ?? null;
+  }
+
+  if (!selectedSubjectId || !selectedConcept?.id || !selectedConcept.difficulty) {
+    return NextResponse.json(
+      {
+        error:
+          "Session metadata missing (subject_id, concept_id, or difficulty). Backfill sessions or seed subjects/concepts before starting sessions.",
+      },
+      { status: 500 },
+    );
+  }
+
   const { data: created, error: createError } = await supabase
     .from("sessions")
     .insert({
       user_id: user.id,
       session_date: today,
       status: "active",
+      subject_id: selectedSubjectId,
+      concept_id: selectedConcept.id,
+      difficulty: selectedConcept.difficulty,
     })
     .select("id")
     .single<{ id: string }>();
@@ -72,6 +118,16 @@ export async function POST(request: Request) {
   if (createError || !created) {
     return NextResponse.json({ error: createError?.message ?? "Unable to start session" }, { status: 500 });
   }
+
+  await supabase.from("session_concepts").upsert(
+    {
+      session_id: created.id,
+      concept_id: selectedConcept.id,
+      kind: "new",
+      question_count: 6,
+    },
+    { onConflict: "session_id,concept_id" },
+  );
 
   return NextResponse.json({ sessionId: created.id, existing: false }, { status: 200 });
 }

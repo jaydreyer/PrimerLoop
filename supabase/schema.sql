@@ -45,6 +45,9 @@ create table if not exists user_settings (
 create table if not exists sessions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
+  subject_id uuid references subjects(id) on delete set null,
+  concept_id uuid references concepts(id) on delete set null,
+  difficulty text check (difficulty in ('beginner', 'intermediate', 'advanced')),
   session_date date not null,
   duration_target_minutes int not null default 12,
   status text not null default 'active' check (status in ('active', 'completed', 'abandoned')),
