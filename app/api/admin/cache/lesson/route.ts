@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { isAdminRouteRequest } from "../../../../../../lib/adminRouteAuth";
-import { putCachedLesson } from "../../../../../../lib/generatedAssetsAdmin";
-import type { Difficulty } from "../../../../../../lib/types";
+import { isAdminRouteRequest } from "../../../../../lib/adminRouteAuth";
+import { putCachedLesson } from "../../../../../lib/generatedAssetsAdmin";
+import type { Difficulty } from "../../../../../lib/types";
 
 type LessonCacheBody = {
   subjectId: string;

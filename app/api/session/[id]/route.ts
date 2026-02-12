@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseUserServer } from "../../../../lib/supabaseUserServer";
 
 type RouteParams = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 export async function GET(_request: Request, { params }: RouteParams) {
@@ -15,5 +15,6 @@ export async function GET(_request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  return NextResponse.json({ sessionId: params.id, error: "Not implemented" }, { status: 501 });
+  const { id } = await params;
+  return NextResponse.json({ sessionId: id, error: "Not implemented" }, { status: 501 });
 }
