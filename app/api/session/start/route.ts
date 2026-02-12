@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseUserServer } from "../../../../lib/supabaseUserServer";
 import type { Difficulty } from "../../../../lib/types";
-import { chooseSessionConcept } from "../../../../lib/sessionSelection";
+import { chooseUnlockedConceptForToday } from "../../../../lib/sessionEngine";
 
 const sessionStartBodySchema = z
   .object({
@@ -110,6 +110,31 @@ export async function POST(request: Request) {
   }>;
   const conceptById = new Map(concepts.map((concept) => [concept.id, concept]));
 
+  const conceptIds = concepts.map((concept) => concept.id);
+  const { data: prerequisiteRows, error: prerequisitesError } = conceptIds.length
+    ? await supabase
+        .from("concept_prerequisites")
+        .select("concept_id, prerequisite_concept_id")
+        .in("concept_id", conceptIds)
+    : { data: [], error: null };
+
+  if (prerequisitesError) {
+    return NextResponse.json({ error: prerequisitesError.message }, { status: 500 });
+  }
+
+  const prerequisitesByConceptId = new Map<string, string[]>();
+  for (const conceptId of conceptIds) {
+    prerequisitesByConceptId.set(conceptId, []);
+  }
+  for (const row of (prerequisiteRows ?? []) as Array<{
+    concept_id: string;
+    prerequisite_concept_id: string;
+  }>) {
+    const existing = prerequisitesByConceptId.get(row.concept_id) ?? [];
+    existing.push(row.prerequisite_concept_id);
+    prerequisitesByConceptId.set(row.concept_id, existing);
+  }
+
   const { data: masteryRows, error: masteryError } = await supabase
     .from("user_concept_mastery")
     .select("concept_id, mastery_score, next_review_at")
@@ -125,27 +150,17 @@ export async function POST(request: Request) {
     mastery_score: number;
     next_review_at: string | null;
   }>;
-  const seenConceptIds = new Set(mastery.map((row) => row.concept_id));
-
-  const selection = chooseSessionConcept(
-    {
-      dueReviews: mastery.map((row) => ({
-        conceptId: row.concept_id,
-        nextReviewAt: row.next_review_at,
-      })),
-      newConcepts: concepts
-        .filter((concept) => !seenConceptIds.has(concept.id))
-        .map((concept) => ({
-          conceptId: concept.id,
-          createdAt: concept.created_at,
-          difficulty: concept.difficulty,
-        })),
-      fallbackConcepts: mastery.map((row) => ({
-        conceptId: row.concept_id,
-        masteryScore: row.mastery_score,
-        nextReviewAt: row.next_review_at,
-      })),
-    },
+  const selection = chooseUnlockedConceptForToday(
+    concepts.map((concept) => ({
+      id: concept.id,
+      createdAt: concept.created_at,
+      prerequisiteIds: prerequisitesByConceptId.get(concept.id) ?? [],
+    })),
+    mastery.map((row) => ({
+      conceptId: row.concept_id,
+      masteryScore: row.mastery_score,
+      nextReviewAt: row.next_review_at,
+    })),
     now,
   );
 

@@ -25,6 +25,13 @@ PrimerLoop is a mobile-first PWA for structured learning with short lessons, act
   - `6-10` quiz questions total
 - Default track weighting: `70%` LLM app, `30%` core tech
 
+## Curriculum Progression Rules
+
+- A concept is unlocked when all prerequisite concepts have `mastery_score >= 3`.
+- Concepts with no prerequisites are unlocked by default.
+- Daily selection only considers unlocked concepts.
+- Selection priority within unlocked concepts: due reviews (`next_review_at <= now`), then lowest `mastery_score`, then unseen concepts.
+
 ## Cost Constraints
 
 - Cache lessons by `(concept, difficulty)`

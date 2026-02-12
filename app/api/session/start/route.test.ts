@@ -25,6 +25,10 @@ type StartRouteMockConfig = {
     data: Array<{ concept_id: string; mastery_score: number; next_review_at: string | null }> | null;
     error: { message: string } | null;
   };
+  prerequisites?: {
+    data: Array<{ concept_id: string; prerequisite_concept_id: string }> | null;
+    error: { message: string } | null;
+  };
   createdSession?: MaybeResult<{ id: string }>;
 };
 
@@ -40,10 +44,13 @@ function buildSupabase(config: StartRouteMockConfig) {
     error: null,
   };
   const mastery = config.mastery ?? { data: [], error: null };
+  const prerequisites = config.prerequisites ?? { data: [], error: null };
   const createdSession =
     config.createdSession ?? ({ data: { id: "session-new" }, error: null } satisfies MaybeResult<{ id: string }>);
+  const sessionConceptUpsert = vi.fn(async () => ({ error: null }));
 
   return {
+    __sessionConceptUpsert: sessionConceptUpsert,
     auth: {
       getUser: vi.fn(async () => ({ data: { user: config.user } })),
     },
@@ -92,6 +99,13 @@ function buildSupabase(config: StartRouteMockConfig) {
         return { select: vi.fn(() => chain) };
       }
 
+      if (table === "concept_prerequisites") {
+        const chain = {
+          in: vi.fn(async () => prerequisites),
+        };
+        return { select: vi.fn(() => chain) };
+      }
+
       if (table === "user_concept_mastery") {
         const chain = {
           eq: vi.fn(() => chain),
@@ -102,7 +116,7 @@ function buildSupabase(config: StartRouteMockConfig) {
 
       if (table === "session_concepts") {
         return {
-          upsert: vi.fn(async () => ({ error: null })),
+          upsert: sessionConceptUpsert,
         };
       }
 
@@ -218,5 +232,36 @@ describe("POST /api/session/start", () => {
 
     expect(response.status).toBe(500);
     expect(body.error).toBe("insert failure");
+  });
+
+  it("does not select locked concepts when prerequisites are not mastered", async () => {
+    const supabase = buildSupabase({
+      user: { id: "user-1" },
+      existingSession: { data: null, error: null },
+      userSettings: { data: { subject_id: "subject-1" }, error: null },
+      concepts: {
+        data: [
+          { id: "concept-locked", difficulty: "beginner", created_at: "2026-01-01T00:00:00.000Z" },
+          { id: "concept-open", difficulty: "beginner", created_at: "2026-01-02T00:00:00.000Z" },
+        ],
+        error: null,
+      },
+      prerequisites: {
+        data: [{ concept_id: "concept-locked", prerequisite_concept_id: "concept-prereq" }],
+        error: null,
+      },
+      mastery: { data: [], error: null },
+      createdSession: { data: { id: "session-new" }, error: null },
+    });
+
+    createSupabaseUserServerMock.mockResolvedValue(supabase);
+
+    const response = await POST(makeRequest("{}"));
+    expect(response.status).toBe(200);
+
+    const upsertPayload = (supabase.__sessionConceptUpsert as ReturnType<typeof vi.fn>).mock.calls[0]?.[0] as {
+      concept_id: string;
+    };
+    expect(upsertPayload.concept_id).toBe("concept-open");
   });
 });

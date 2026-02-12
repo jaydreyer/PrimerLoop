@@ -7,12 +7,32 @@ import {
   type UserSettings,
 } from "./types";
 
+export const UNLOCK_MASTERY_THRESHOLD = 3;
+export const MASTERED_MASTERY_THRESHOLD = 4;
+
 type PlannerInput = {
   concepts: Concept[];
   states: UserConceptState[];
   userSettings: UserSettings;
   date?: Date;
   config?: Partial<SessionPlannerConfig>;
+};
+
+export type CurriculumConcept = {
+  id: string;
+  prerequisiteIds: string[];
+  createdAt?: string | null;
+};
+
+export type CurriculumMastery = {
+  conceptId: string;
+  masteryScore: number;
+  nextReviewAt: string | null;
+};
+
+export type CurriculumSelection = {
+  conceptId: string;
+  source: "due_review" | "fallback" | "new_concept";
 };
 
 function mergeConfig(config?: Partial<SessionPlannerConfig>): SessionPlannerConfig {
@@ -38,11 +58,11 @@ function chooseTrackByWeight(date: Date, config: SessionPlannerConfig): string |
 function prerequisitesSatisfied(concept: Concept, stateByConceptId: Map<string, UserConceptState>): boolean {
   return concept.prerequisiteIds.every((id) => {
     const state = stateByConceptId.get(id);
-    return !!state && state.masteryLevel >= 1;
+    return !!state && state.masteryLevel >= UNLOCK_MASTERY_THRESHOLD;
   });
 }
 
-function sortByCurriculumOrder(concepts: Concept[]): Concept[] {
+function sortByCurriculumOrder<T extends { id: string; prerequisiteIds: string[] }>(concepts: T[]): T[] {
   const conceptById = new Map(concepts.map((concept) => [concept.id, concept]));
   const originalIndex = new Map(concepts.map((concept, index) => [concept.id, index]));
   const indegree = new Map<string, number>();
@@ -96,7 +116,90 @@ function sortByCurriculumOrder(concepts: Concept[]): Concept[] {
     sortedIds.push(...remaining);
   }
 
-  return sortedIds.map((id) => conceptById.get(id)).filter((concept): concept is Concept => Boolean(concept));
+  return sortedIds.map((id) => conceptById.get(id)).filter((concept): concept is T => Boolean(concept));
+}
+
+export function isUnlockedByPrerequisites(
+  concept: { prerequisiteIds: string[] },
+  masteryByConceptId: ReadonlyMap<string, number>,
+): boolean {
+  if (concept.prerequisiteIds.length === 0) return true;
+  return concept.prerequisiteIds.every((prerequisiteId) => {
+    const score = masteryByConceptId.get(prerequisiteId);
+    return typeof score === "number" && score >= UNLOCK_MASTERY_THRESHOLD;
+  });
+}
+
+export function chooseUnlockedConceptForToday(
+  concepts: CurriculumConcept[],
+  masteryRows: CurriculumMastery[],
+  now = new Date(),
+): CurriculumSelection | null {
+  const orderedConcepts = sortByCurriculumOrder(concepts);
+  const orderedIndexById = new Map(orderedConcepts.map((concept, idx) => [concept.id, idx]));
+  const masteryByConceptId = new Map(masteryRows.map((row) => [row.conceptId, row.masteryScore]));
+  const masteryRowByConceptId = new Map(masteryRows.map((row) => [row.conceptId, row]));
+  const unlockedConcepts = orderedConcepts.filter((concept) =>
+    isUnlockedByPrerequisites(concept, masteryByConceptId),
+  );
+
+  if (unlockedConcepts.length === 0) {
+    return null;
+  }
+
+  const nowMs = now.getTime();
+  const dueReviews = unlockedConcepts
+    .map((concept) => ({ concept, mastery: masteryRowByConceptId.get(concept.id) ?? null }))
+    .filter((entry) => {
+      const nextReviewAt = entry.mastery?.nextReviewAt;
+      if (!nextReviewAt) return false;
+      const ts = new Date(nextReviewAt).getTime();
+      return Number.isFinite(ts) && ts <= nowMs;
+    })
+    .sort((a, b) => {
+      const aTs = new Date(a.mastery?.nextReviewAt ?? "").getTime();
+      const bTs = new Date(b.mastery?.nextReviewAt ?? "").getTime();
+      if (aTs !== bTs) return aTs - bTs;
+
+      const aScore = a.mastery?.masteryScore ?? Number.POSITIVE_INFINITY;
+      const bScore = b.mastery?.masteryScore ?? Number.POSITIVE_INFINITY;
+      if (aScore !== bScore) return aScore - bScore;
+
+      return (orderedIndexById.get(a.concept.id) ?? 0) - (orderedIndexById.get(b.concept.id) ?? 0);
+    });
+
+  if (dueReviews.length > 0) {
+    return { conceptId: dueReviews[0].concept.id, source: "due_review" };
+  }
+
+  const unlockedSeen = unlockedConcepts
+    .map((concept) => ({ concept, mastery: masteryRowByConceptId.get(concept.id) ?? null }))
+    .filter((entry) => entry.mastery !== null)
+    .sort((a, b) => {
+      const aScore = a.mastery?.masteryScore ?? Number.POSITIVE_INFINITY;
+      const bScore = b.mastery?.masteryScore ?? Number.POSITIVE_INFINITY;
+      if (aScore !== bScore) return aScore - bScore;
+
+      const aTs = a.mastery?.nextReviewAt ? new Date(a.mastery.nextReviewAt).getTime() : Number.NaN;
+      const bTs = b.mastery?.nextReviewAt ? new Date(b.mastery.nextReviewAt).getTime() : Number.NaN;
+      const aFinite = Number.isFinite(aTs);
+      const bFinite = Number.isFinite(bTs);
+      if (aFinite && bFinite && aTs !== bTs) return aTs - bTs;
+      if (aFinite !== bFinite) return aFinite ? 1 : -1;
+
+      return (orderedIndexById.get(a.concept.id) ?? 0) - (orderedIndexById.get(b.concept.id) ?? 0);
+    });
+
+  if (unlockedSeen.length > 0) {
+    return { conceptId: unlockedSeen[0].concept.id, source: "fallback" };
+  }
+
+  const unlockedUnseen = unlockedConcepts.filter((concept) => !masteryByConceptId.has(concept.id));
+  if (unlockedUnseen.length > 0) {
+    return { conceptId: unlockedUnseen[0].id, source: "new_concept" };
+  }
+
+  return null;
 }
 
 export function buildDailySessionPlan(input: PlannerInput): DailySessionPlan {
