@@ -78,3 +78,12 @@ For magic-link auth to work on both your local machine and devices on your LAN, 
 - `http://<LAN-IP>:3001/auth/callback`
 
 Use the **Network** URL printed by `next dev` to find your LAN IP, then copy that IP into the second URL.
+
+## First Run
+
+1. Sign in from `/login`.
+2. Open `/today`.
+3. If this is a new account (no `user_settings` row), complete the first-run card:
+   - pick subject (default: `AI & LLM Systems`)
+   - pick daily minutes (default: `15`)
+4. Tap `Save and start` to persist settings and launch your first lesson.

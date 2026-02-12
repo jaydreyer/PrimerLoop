@@ -20,7 +20,7 @@ describe("TodayPage", () => {
     pushMock.mockReset();
   });
 
-  it("renders Unauthorized error state when session API returns 401", async () => {
+  it("renders Unauthorized error state when settings API returns 401", async () => {
     vi.spyOn(global, "fetch").mockResolvedValueOnce({
       ok: false,
       json: async () => ({ error: "Unauthorized" }),
@@ -32,10 +32,15 @@ describe("TodayPage", () => {
   });
 
   it("renders continue card when active session exists", async () => {
-    vi.spyOn(global, "fetch").mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ session: { sessionId: "abc123", conceptName: "Transformers" } }),
-    } as Response);
+    vi.spyOn(global, "fetch")
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ settings: { subjectId: "subject-1", dailyMinutes: 12 } }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ session: { sessionId: "abc123", conceptName: "Transformers", needsReset: false } }),
+      } as Response);
 
     render(<TodayPage />);
 
@@ -43,11 +48,33 @@ describe("TodayPage", () => {
     expect(continueLink).toHaveAttribute("href", "/lesson/abc123");
   });
 
-  it("renders start button when no active session exists", async () => {
-    vi.spyOn(global, "fetch").mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ session: null }),
-    } as Response);
+  it("shows onboarding when settings are missing", async () => {
+    vi.spyOn(global, "fetch")
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ settings: null }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ session: null }),
+      } as Response);
+
+    render(<TodayPage />);
+
+    expect(await screen.findByText("First run setup")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save and start" })).toBeInTheDocument();
+  });
+
+  it("renders start button when returning user has no active session", async () => {
+    vi.spyOn(global, "fetch")
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ settings: { subjectId: "subject-1", dailyMinutes: 12 } }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ session: null }),
+      } as Response);
 
     render(<TodayPage />);
 
@@ -57,6 +84,10 @@ describe("TodayPage", () => {
 
   it("starts a new session and redirects after start click", async () => {
     vi.spyOn(global, "fetch")
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ settings: { subjectId: "subject-1", dailyMinutes: 12 } }),
+      } as Response)
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ session: null }),
@@ -73,5 +104,68 @@ describe("TodayPage", () => {
 
     expect(await screen.findByRole("button", { name: "Starting..." })).toBeInTheDocument();
     expect(pushMock).toHaveBeenCalledWith("/lesson/new-session");
+  });
+
+  it("saves onboarding settings then starts session", async () => {
+    vi.spyOn(global, "fetch")
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ settings: null }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ session: null }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ settings: { subjectId: "subject-1", dailyMinutes: 15 } }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ sessionId: "onboarding-session" }),
+      } as Response);
+
+    render(<TodayPage />);
+
+    const onboardingButton = await screen.findByRole("button", { name: "Save and start" });
+    fireEvent.click(onboardingButton);
+
+    expect(await screen.findByRole("button", { name: "Starting..." })).toBeInTheDocument();
+    expect(pushMock).toHaveBeenCalledWith("/lesson/onboarding-session");
+  });
+
+  it("shows reset flow for incomplete active session", async () => {
+    const fetchSpy = vi.spyOn(global, "fetch")
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ settings: { subjectId: "subject-1", dailyMinutes: 12 } }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ session: { sessionId: "broken", conceptName: null, needsReset: true } }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ ok: true }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ settings: { subjectId: "subject-1", dailyMinutes: 12 } }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ session: null }),
+      } as Response);
+
+    render(<TodayPage />);
+
+    const resetButton = await screen.findByRole("button", { name: "Reset today" });
+    fireEvent.click(resetButton);
+
+    await screen.findByRole("button", { name: "Start today's session" });
+    expect(fetchSpy).toHaveBeenCalledWith(
+      "/api/session/reset",
+      expect.objectContaining({ method: "POST" }),
+    );
   });
 });
