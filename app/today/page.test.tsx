@@ -43,7 +43,19 @@ describe("TodayPage", () => {
     expect(screen.getByRole("link", { name: "Continue" })).toHaveAttribute("href", "/lesson/abc123");
   });
 
-  it("starts a new session and redirects when no active session exists", async () => {
+  it("renders start button when no active session exists", async () => {
+    vi.spyOn(global, "fetch").mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ session: null }),
+    } as Response);
+
+    render(<TodayPage />);
+
+    const startButton = await screen.findByRole("button", { name: "Start today's session" });
+    expect(startButton).toBeInTheDocument();
+  });
+
+  it("starts a new session and redirects after start click", async () => {
     vi.spyOn(global, "fetch")
       .mockResolvedValueOnce({
         ok: true,

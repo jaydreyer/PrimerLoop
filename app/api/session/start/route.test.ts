@@ -10,30 +10,86 @@ vi.mock("../../../../lib/supabaseUserServer", () => ({
 
 import { POST } from "./route";
 
-type QueryResult = { data: { id: string } | null; error: { message: string } | null };
-type CreateResult = { data: { id: string } | null; error: { message: string } | null };
+type MaybeResult<T> = { data: T | null; error: { message: string } | null };
 
-function buildSupabase(user: { id: string } | null, queryResult?: QueryResult, createResult?: CreateResult) {
+type StartRouteMockConfig = {
+  user: { id: string } | null;
+  existingSession?: MaybeResult<{ id: string }>;
+  userSettings?: MaybeResult<{ subject_id: string }>;
+  defaultSubject?: MaybeResult<{ id: string }>;
+  firstConcept?: MaybeResult<{ id: string; difficulty: "beginner" | "intermediate" | "advanced" }>;
+  createdSession?: MaybeResult<{ id: string }>;
+};
+
+function buildSupabase(config: StartRouteMockConfig) {
+  const existingSession =
+    config.existingSession ?? ({ data: null, error: null } satisfies MaybeResult<{ id: string }>);
+  const userSettings =
+    config.userSettings ?? ({ data: null, error: null } satisfies MaybeResult<{ subject_id: string }>);
+  const defaultSubject =
+    config.defaultSubject ?? ({ data: null, error: null } satisfies MaybeResult<{ id: string }>);
+  const firstConcept =
+    config.firstConcept ??
+    ({ data: null, error: null } satisfies MaybeResult<{ id: string; difficulty: "beginner" }>);
+  const createdSession =
+    config.createdSession ?? ({ data: { id: "session-new" }, error: null } satisfies MaybeResult<{ id: string }>);
+
   return {
     auth: {
-      getUser: vi.fn(async () => ({ data: { user } })),
+      getUser: vi.fn(async () => ({ data: { user: config.user } })),
     },
-    from: vi.fn(() => {
-      const queryChain = {
-        eq: vi.fn(() => queryChain),
-        order: vi.fn(() => queryChain),
-        limit: vi.fn(() => queryChain),
-        maybeSingle: vi.fn(async () => queryResult),
-      };
+    from: vi.fn((table: string) => {
+      if (table === "sessions") {
+        const selectChain = {
+          eq: vi.fn(() => selectChain),
+          order: vi.fn(() => selectChain),
+          limit: vi.fn(() => selectChain),
+          maybeSingle: vi.fn(async () => existingSession),
+        };
 
-      return {
-        select: vi.fn(() => queryChain),
-        insert: vi.fn(() => ({
-          select: vi.fn(() => ({
-            single: vi.fn(async () => createResult),
+        return {
+          select: vi.fn(() => selectChain),
+          insert: vi.fn(() => ({
+            select: vi.fn(() => ({
+              single: vi.fn(async () => createdSession),
+            })),
           })),
-        })),
-      };
+        };
+      }
+
+      if (table === "user_settings") {
+        const chain = {
+          eq: vi.fn(() => chain),
+          maybeSingle: vi.fn(async () => userSettings),
+        };
+        return { select: vi.fn(() => chain) };
+      }
+
+      if (table === "subjects") {
+        const chain = {
+          eq: vi.fn(() => chain),
+          maybeSingle: vi.fn(async () => defaultSubject),
+        };
+        return { select: vi.fn(() => chain) };
+      }
+
+      if (table === "concepts") {
+        const chain = {
+          eq: vi.fn(() => chain),
+          order: vi.fn(() => chain),
+          limit: vi.fn(() => chain),
+          maybeSingle: vi.fn(async () => firstConcept),
+        };
+        return { select: vi.fn(() => chain) };
+      }
+
+      if (table === "session_concepts") {
+        return {
+          upsert: vi.fn(async () => ({ error: null })),
+        };
+      }
+
+      throw new Error(`Unexpected table: ${table}`);
     }),
   };
 }
@@ -51,8 +107,8 @@ describe("POST /api/session/start", () => {
     createSupabaseUserServerMock.mockReset();
   });
 
-  it("returns 401 without auth cookie/session", async () => {
-    createSupabaseUserServerMock.mockResolvedValue(buildSupabase(null));
+  it("returns 401 when unauthenticated", async () => {
+    createSupabaseUserServerMock.mockResolvedValue(buildSupabase({ user: null }));
 
     const response = await POST(makeRequest("{}"));
     const body = await response.json();
@@ -62,7 +118,7 @@ describe("POST /api/session/start", () => {
   });
 
   it("returns 400 for invalid JSON body", async () => {
-    createSupabaseUserServerMock.mockResolvedValue(buildSupabase({ id: "user-1" }));
+    createSupabaseUserServerMock.mockResolvedValue(buildSupabase({ user: { id: "user-1" } }));
 
     const response = await POST(makeRequest("{"));
     const body = await response.json();
@@ -71,43 +127,65 @@ describe("POST /api/session/start", () => {
     expect(body.error).toBe("Invalid JSON body");
   });
 
-  it("returns existing session when present", async () => {
+  it("returns existing session when already active", async () => {
     createSupabaseUserServerMock.mockResolvedValue(
-      buildSupabase({ id: "user-1" }, { data: { id: "session-existing" }, error: null }),
+      buildSupabase({
+        user: { id: "user-1" },
+        existingSession: { data: { id: "session-existing" }, error: null },
+      }),
     );
 
     const response = await POST(makeRequest("{}"));
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.sessionId).toBe("session-existing");
-    expect(body.existing).toBe(true);
+    expect(body).toEqual({ sessionId: "session-existing", existing: true });
   });
 
-  it("creates a new session when none exists", async () => {
+  it("returns 500 when subject/concept metadata is unavailable", async () => {
     createSupabaseUserServerMock.mockResolvedValue(
-      buildSupabase(
-        { id: "user-1" },
-        { data: null, error: null },
-        { data: { id: "session-new" }, error: null },
-      ),
+      buildSupabase({
+        user: { id: "user-1" },
+        existingSession: { data: null, error: null },
+        userSettings: { data: null, error: null },
+        defaultSubject: { data: null, error: null },
+      }),
+    );
+
+    const response = await POST(makeRequest("{}"));
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(body.error).toMatch(/Session metadata missing/);
+  });
+
+  it("creates a new session when none exists and metadata is available", async () => {
+    createSupabaseUserServerMock.mockResolvedValue(
+      buildSupabase({
+        user: { id: "user-1" },
+        existingSession: { data: null, error: null },
+        userSettings: { data: { subject_id: "subject-1" }, error: null },
+        firstConcept: { data: { id: "concept-1", difficulty: "beginner" }, error: null },
+        createdSession: { data: { id: "session-new" }, error: null },
+      }),
     );
 
     const response = await POST(makeRequest("{}"));
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.sessionId).toBe("session-new");
-    expect(body.existing).toBe(false);
+    expect(body).toEqual({ sessionId: "session-new", existing: false });
   });
 
-  it("returns 500 when create query fails", async () => {
+  it("returns 500 when session insert fails", async () => {
     createSupabaseUserServerMock.mockResolvedValue(
-      buildSupabase(
-        { id: "user-1" },
-        { data: null, error: null },
-        { data: null, error: { message: "insert failure" } },
-      ),
+      buildSupabase({
+        user: { id: "user-1" },
+        existingSession: { data: null, error: null },
+        userSettings: { data: { subject_id: "subject-1" }, error: null },
+        firstConcept: { data: { id: "concept-1", difficulty: "beginner" }, error: null },
+        createdSession: { data: null, error: { message: "insert failure" } },
+      }),
     );
 
     const response = await POST(makeRequest("{}"));
