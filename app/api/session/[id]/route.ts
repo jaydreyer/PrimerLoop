@@ -51,9 +51,9 @@ export async function GET(request: Request, { params }: RouteParams) {
 
   const { data: concept, error: conceptError } = await supabase
     .from("concepts")
-    .select("id, title")
+    .select("id, title, slug")
     .eq("id", session.concept_id)
-    .maybeSingle<{ id: string; title: string }>();
+    .maybeSingle<{ id: string; title: string; slug: string }>();
 
   if (conceptError || !concept) {
     return NextResponse.json({ error: conceptError?.message ?? "Concept not found" }, { status: 500 });
@@ -91,6 +91,7 @@ export async function GET(request: Request, { params }: RouteParams) {
 
   const generatedLesson = await generateLessonContent({
     conceptName: concept.title,
+    conceptSlug: concept.slug,
     difficulty,
     subjectName: subject?.name ?? "Current Subject",
   });

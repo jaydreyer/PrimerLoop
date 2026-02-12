@@ -57,6 +57,12 @@ Set these in `.env.local`:
 - Do not expose `SUPABASE_SERVICE_ROLE_KEY`, `LLM_API_KEY`, or `ADMIN_API_KEY` in client code.
 - Restart the dev server after changing `.env.local`.
 
+## Collaboration Workflow
+
+- When a pasted task would be better handled in a fresh thread, the assistant should:
+  - explicitly recommend starting a new thread, and
+  - create a handoff document at `/Users/jaydreyer/projects/PrimerLoop/HANDOFF_NEXT_THREAD.md` with the required context to continue.
+
 ## Supabase Auth Redirect URLs (Local + LAN)
 
 For magic-link auth to work on both your local machine and devices on your LAN, add both callback URLs in Supabase Auth settings:

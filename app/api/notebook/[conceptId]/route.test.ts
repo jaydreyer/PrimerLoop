@@ -38,7 +38,13 @@ type MaybeSingle<T> = { data: T | null; error: { message: string } | null };
 function buildSupabase(config: {
   user: { id: string } | null;
   existingEntry?: MaybeSingle<{ content: unknown }>;
-  concept?: MaybeSingle<{ id: string; title: string; subject_id: string; difficulty: "beginner" | "intermediate" | "advanced" | null }>;
+  concept?: MaybeSingle<{
+    id: string;
+    title: string;
+    slug: string;
+    subject_id: string;
+    difficulty: "beginner" | "intermediate" | "advanced" | null;
+  }>;
   latestQuiz?: MaybeSingle<{ percent: number; results: unknown; created_at: string }>;
 }) {
   const existingEntry = config.existingEntry ?? { data: null, error: null };
@@ -48,6 +54,7 @@ function buildSupabase(config: {
       data: {
         id: "concept-1",
         title: "Transformers",
+        slug: "transformers",
         subject_id: "subject-1",
         difficulty: "beginner" as const,
       },

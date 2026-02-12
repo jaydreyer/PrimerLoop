@@ -42,11 +42,70 @@ function prerequisitesSatisfied(concept: Concept, stateByConceptId: Map<string, 
   });
 }
 
+function sortByCurriculumOrder(concepts: Concept[]): Concept[] {
+  const conceptById = new Map(concepts.map((concept) => [concept.id, concept]));
+  const originalIndex = new Map(concepts.map((concept, index) => [concept.id, index]));
+  const indegree = new Map<string, number>();
+  const outbound = new Map<string, string[]>();
+
+  for (const concept of concepts) {
+    indegree.set(concept.id, 0);
+    outbound.set(concept.id, []);
+  }
+
+  for (const concept of concepts) {
+    for (const prerequisiteId of concept.prerequisiteIds) {
+      if (!conceptById.has(prerequisiteId)) continue;
+      indegree.set(concept.id, (indegree.get(concept.id) ?? 0) + 1);
+      outbound.get(prerequisiteId)?.push(concept.id);
+    }
+  }
+
+  const zeroQueue = concepts
+    .filter((concept) => (indegree.get(concept.id) ?? 0) === 0)
+    .sort((a, b) => (originalIndex.get(a.id) ?? 0) - (originalIndex.get(b.id) ?? 0))
+    .map((concept) => concept.id);
+
+  const sortedIds: string[] = [];
+
+  while (zeroQueue.length > 0) {
+    const conceptId = zeroQueue.shift();
+    if (!conceptId) break;
+    sortedIds.push(conceptId);
+
+    const neighbors = [...(outbound.get(conceptId) ?? [])].sort(
+      (a, b) => (originalIndex.get(a) ?? 0) - (originalIndex.get(b) ?? 0),
+    );
+    for (const nextId of neighbors) {
+      const nextDegree = (indegree.get(nextId) ?? 0) - 1;
+      indegree.set(nextId, nextDegree);
+      if (nextDegree === 0) {
+        zeroQueue.push(nextId);
+        zeroQueue.sort((a, b) => (originalIndex.get(a) ?? 0) - (originalIndex.get(b) ?? 0));
+      }
+    }
+  }
+
+  // If there is a cycle/bad data, preserve deterministic fallback based on input order.
+  if (sortedIds.length !== concepts.length) {
+    const sortedSet = new Set(sortedIds);
+    const remaining = concepts
+      .filter((concept) => !sortedSet.has(concept.id))
+      .sort((a, b) => (originalIndex.get(a.id) ?? 0) - (originalIndex.get(b.id) ?? 0))
+      .map((concept) => concept.id);
+    sortedIds.push(...remaining);
+  }
+
+  return sortedIds.map((id) => conceptById.get(id)).filter((concept): concept is Concept => Boolean(concept));
+}
+
 export function buildDailySessionPlan(input: PlannerInput): DailySessionPlan {
   const date = input.date ?? new Date();
   const config = mergeConfig(input.config);
   const stateByConceptId = new Map(input.states.map((s) => [s.conceptId, s]));
-  const subjectConcepts = input.concepts.filter((c) => c.subjectId === input.userSettings.subjectId);
+  const subjectConcepts = sortByCurriculumOrder(
+    input.concepts.filter((c) => c.subjectId === input.userSettings.subjectId),
+  );
   const subjectConceptIds = new Set(subjectConcepts.map((c) => c.id));
 
   const dueReviews = input.states

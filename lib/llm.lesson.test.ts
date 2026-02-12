@@ -9,6 +9,7 @@ describe("generateLessonContent structure", () => {
 
     const lesson = await generateLessonContent({
       conceptName: "Context Window Management",
+      conceptSlug: "context-window-management",
       difficulty: "intermediate",
       subjectName: "AI & LLM Systems",
     });
@@ -34,5 +35,72 @@ describe("generateLessonContent structure", () => {
     const workedExample = lesson.sections.find((section) => section.heading === "Worked Example");
     expect(workedExample).toBeDefined();
     expect((workedExample?.bullets ?? []).join(" ")).toMatch(/\d/);
+  });
+
+  it("enforces tokens/context-only fallback for tokens-context slug", async () => {
+    const previousKey = process.env.LLM_API_KEY;
+    process.env.LLM_API_KEY = "";
+
+    const lesson = await generateLessonContent({
+      conceptName: "Tokens & Context",
+      conceptSlug: "tokens-context",
+      difficulty: "beginner",
+      subjectName: "AI & LLM Systems",
+    });
+
+    if (typeof previousKey === "string") {
+      process.env.LLM_API_KEY = previousKey;
+    } else {
+      delete process.env.LLM_API_KEY;
+    }
+
+    const text = [
+      lesson.title,
+      ...lesson.sections.map((section) => `${section.heading} ${section.bullets.join(" ")}`),
+      ...lesson.key_takeaways,
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    expect(text).toContain("tokenization example");
+    expect(text).toContain("context truncation example");
+    expect(text).toContain("cost math example");
+    expect(text).not.toContain("temperature");
+    expect(text).not.toContain("top-p");
+    expect(text).not.toContain("greedy");
+  });
+
+  it("covers sampling controls for sampling-generation slug", async () => {
+    const previousKey = process.env.LLM_API_KEY;
+    process.env.LLM_API_KEY = "";
+
+    const lesson = await generateLessonContent({
+      conceptName: "Sampling & Generation Behavior",
+      conceptSlug: "sampling-generation",
+      difficulty: "beginner",
+      subjectName: "AI & LLM Systems",
+    });
+
+    if (typeof previousKey === "string") {
+      process.env.LLM_API_KEY = previousKey;
+    } else {
+      delete process.env.LLM_API_KEY;
+    }
+
+    const text = [
+      lesson.title,
+      ...lesson.sections.map((section) => `${section.heading} ${section.bullets.join(" ")}`),
+      ...lesson.key_takeaways,
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    expect(text).toContain("next-token prediction");
+    expect(text).toContain("greedy decoding");
+    expect(text).toContain("temperature");
+    expect(text).toContain("top-p");
+    expect(text).toContain("determinism");
+    expect(text).toContain("high temperature");
+    expect(text).toContain("they differ because");
   });
 });

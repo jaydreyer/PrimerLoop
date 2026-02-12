@@ -170,6 +170,7 @@ export async function getCachedQuiz(
 
 type GenerateLessonInput = {
   conceptName: string;
+  conceptSlug?: string;
   difficulty: Difficulty;
   subjectName: string;
 };
@@ -193,7 +194,131 @@ type GenerateNotebookEntryInput = {
 };
 
 function fallbackLessonContent(input: GenerateLessonInput): LessonContent {
+  const conceptSlug = input.conceptSlug?.trim().toLowerCase();
   const title = `${input.conceptName} (${input.difficulty})`;
+
+  if (conceptSlug === "tokens-context") {
+    return {
+      title,
+      sections: [
+        {
+          heading: "Core Idea",
+          bullets: [
+            "A token is a model-specific text unit; token is not the same as a word, and token is not the same as a character.",
+            "Context window is the total token budget available for one request-response cycle.",
+            "In practice, total tokens = input tokens + output tokens, so long prompts directly reduce response room.",
+          ],
+        },
+        {
+          heading: "Mental Model",
+          bullets: [
+            "Treat context like a fixed-size container: every system instruction, user message, and retrieved chunk consumes space before the model can generate output.",
+          ],
+        },
+        {
+          heading: "Worked Example",
+          bullets: [
+            'Sentence tokenization example: "Hello world" might tokenize as ["Hello", " world"]; many tokenizers attach leading whitespace to the next token, so the second token starts with a space.',
+            "Tokenization edge cases: emojis and long numbers are often split into multiple tokens, which can increase token count unexpectedly.",
+            "Context window example: with an 8k-token window and a 7,500-token prompt, only 500 tokens remain for output.",
+            "Long system prompt example: if system instructions take 2,000 tokens in an 8k window, the remaining budget for user input, retrieved context, and output drops sharply.",
+            "Context truncation example: with a 8,192-token limit, a 8,900-token request forces truncation; the last 708 tokens are dropped, which can remove critical instructions.",
+            "Near context limits, responses degrade because important earlier tokens may be truncated and the model has too little remaining output budget for complete reasoning.",
+            "Cost math example: if input is 6,000 tokens at $0.50 per 1M and output is 700 tokens at $1.50 per 1M, request cost is (6,000/1,000,000)*0.50 + (700/1,000,000)*1.50 = $0.00405.",
+            "Why tokenization matters for cost: billing is token-based, so higher token counts from chunking/tokenization directly increase spend.",
+          ],
+        },
+        {
+          heading: "Interview Angle",
+          bullets: [
+            "Explain how you estimate token budgets before shipping a prompt chain.",
+            "Mention concrete truncation safeguards (summarization, chunk limits, retrieval reranking).",
+            "Common trap: discussing quality improvements without proving context fits in budget.",
+          ],
+        },
+        {
+          heading: "System Design Connection",
+          bullets: [
+            "RAG quality depends on selecting the highest-signal passages that still fit context.",
+            "Agent pipelines need per-step context caps so tool traces do not crowd out user intent.",
+            "Token accounting is required for both latency and cost guardrails in production.",
+          ],
+        },
+        {
+          heading: "60-second recap",
+          bullets: [
+            "Tokens determine how text is counted; context sets a hard capacity limit. Strong LLM app design budgets tokens, prevents truncation of important content, and verifies per-request cost before scaling traffic.",
+          ],
+        },
+      ],
+      key_takeaways: [
+        "Token counts are model-specific and not equal to word counts.",
+        "Context overflow silently drops useful information unless guarded.",
+        "Token budgeting should be part of both quality and cost design.",
+      ],
+    };
+  }
+
+  if (conceptSlug === "sampling-generation") {
+    return {
+      title,
+      sections: [
+        {
+          heading: "Core Idea",
+          bullets: [
+            "Generation is next-token prediction repeated until a stop condition is met.",
+            "Decoding strategy controls whether output is conservative, varied, or unstable.",
+            "Sampling choices should match the product goal: consistency for workflows, creativity for ideation.",
+          ],
+        },
+        {
+          heading: "Mental Model",
+          bullets: [
+            "Imagine a weighted roulette wheel over candidate next tokens: decoding rules decide whether you always take the top slice or allow lower-probability slices.",
+          ],
+        },
+        {
+          heading: "Worked Example",
+          bullets: [
+            "Greedy decoding always picks the highest-probability token at each step, which maximizes local certainty but can make phrasing repetitive.",
+            "Temperature rescales probabilities: low values sharpen toward likely tokens, higher values flatten and increase diversity.",
+            "Top-p keeps the smallest token set whose cumulative probability reaches p (for example p=0.9), then samples only from that set.",
+            'Example prompt: "Write one line inviting users to start today\'s lesson." Low temperature output: "Start today\'s lesson now to build steady progress." High temperature output: "Jump into today\'s lesson and spark a fresh chain of ideas."',
+            "They differ because low temperature concentrates probability mass on common phrasing, while high temperature allows lower-probability wording choices.",
+          ],
+        },
+        {
+          heading: "Interview Angle",
+          bullets: [
+            "State where deterministic output is required (grading, safety policy responses, structured extraction).",
+            "Explain where controlled randomness helps (brainstorming, style variation, marketing drafts).",
+            "Common trap: changing temperature without monitoring factual accuracy and format adherence.",
+          ],
+        },
+        {
+          heading: "System Design Connection",
+          bullets: [
+            "For agents, deterministic decoding reduces flaky tool-call plans.",
+            "For creative assistants, moderate temperature plus top-p can improve variety without full drift.",
+            "Eval suites should track how decoding settings affect correctness, latency, and refusal behavior.",
+          ],
+        },
+        {
+          heading: "60-second recap",
+          bullets: [
+            "LLM generation is iterative next-token prediction. Greedy decoding is stable but narrow; temperature and top-p introduce controlled randomness. Pick decoding settings based on whether your feature needs strict repeatability or varied expression.",
+          ],
+        },
+      ],
+      key_takeaways: [
+        "Greedy decoding favors deterministic, repeatable outputs.",
+        "Temperature controls randomness by reshaping token probabilities.",
+        "Top-p sampling limits choices to a cumulative-probability frontier.",
+        "Use determinism for reliability and randomness for creative range.",
+      ],
+    };
+  }
+
   return {
     title,
     sections: [
@@ -327,6 +452,16 @@ export function clampScore(value: number): number {
   return value;
 }
 
+function normalizeLessonSections(lesson: LessonContent): LessonContent {
+  const filteredSections = lesson.sections.filter(
+    (section) => section.heading.trim().toLowerCase() !== "key takeaways",
+  );
+  return {
+    ...lesson,
+    sections: filteredSections,
+  };
+}
+
 export async function generateLessonContent(input: GenerateLessonInput): Promise<LessonContent> {
   let llmApiKey: string;
   try {
@@ -343,10 +478,12 @@ export async function generateLessonContent(input: GenerateLessonInput): Promise
     "",
     "Return strict JSON only with this exact shape:",
     '{ "title": string, "sections": [{ "heading": string, "bullets": string[] }], "key_takeaways": string[] }',
-    "Required section headings: Core Idea, Mental Model, Worked Example, Interview Angle, System Design Connection, 60-second recap.",
+    "Required section headings: Core Constraint, Mental Model, Concrete Mechanism, Failure Mode, Design Consequence, Transfer Test, 60-Second Compression.",
+    'Do not include "Key Takeaways" as a section heading in sections; use key_takeaways array only.',
     "Worked Example must include at least one concrete number, limit, or constraint.",
     `Tone: ${contentTone()} (${contentTone() === "interview" ? "Bias toward LLM app interview framing." : "Use neutral instructional framing."})`,
     `Concept: ${input.conceptName}`,
+    `ConceptSlug: ${input.conceptSlug ?? ""}`,
     `Difficulty: ${input.difficulty}`,
     `Subject: ${input.subjectName}`,
   ].join("\n");
@@ -384,7 +521,7 @@ export async function generateLessonContent(input: GenerateLessonInput): Promise
       return fallbackLessonContent(input);
     }
 
-    return validated.data;
+    return normalizeLessonSections(validated.data);
   } catch {
     return fallbackLessonContent(input);
   }
