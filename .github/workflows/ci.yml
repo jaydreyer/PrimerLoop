@@ -26,6 +26,28 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
+      - name: Secret guard (tracked files only)
+        run: |
+          set -euo pipefail
+
+          if git ls-files --error-unmatch .env.local >/dev/null 2>&1; then
+            echo "ERROR: .env.local is tracked. Remove it from git."
+            exit 1
+          fi
+
+          # Conservative patterns to reduce false positives:
+          # - OpenAI-style secret-like tokens (long sk- prefixed values)
+          # - Non-empty SUPABASE_SERVICE_ROLE_KEY assignments
+          if git grep -nE 'sk-[A-Za-z0-9_-]{20,}' -- . ':(exclude)package-lock.json'; then
+            echo "ERROR: Potential secret token found in tracked files."
+            exit 1
+          fi
+
+          if git grep -nE 'SUPABASE_SERVICE_ROLE_KEY=[^[:space:]]+' -- . ':(exclude).env.example'; then
+            echo "ERROR: Non-empty SUPABASE_SERVICE_ROLE_KEY assignment found in tracked files."
+            exit 1
+          fi
+
       - name: Lint
         run: npm run lint
 
