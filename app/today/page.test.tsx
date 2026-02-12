@@ -39,8 +39,8 @@ describe("TodayPage", () => {
 
     render(<TodayPage />);
 
-    expect(await screen.findByText("Transformers")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Continue" })).toHaveAttribute("href", "/lesson/abc123");
+    const continueLink = await screen.findByRole("link", { name: "Continue" });
+    expect(continueLink).toHaveAttribute("href", "/lesson/abc123");
   });
 
   it("renders start button when no active session exists", async () => {

@@ -34,6 +34,18 @@ create table if not exists user_concepts (
   primary key (user_id, concept_id)
 );
 
+create table if not exists user_concept_mastery (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  subject_id uuid not null references subjects(id) on delete cascade,
+  concept_id uuid not null references concepts(id) on delete cascade,
+  mastery_score numeric(5,4) not null default 0 check (mastery_score >= 0 and mastery_score <= 1),
+  review_count int not null default 0 check (review_count >= 0),
+  last_attempt_at timestamptz,
+  next_review_at timestamptz,
+  updated_at timestamptz not null default now(),
+  primary key (user_id, subject_id, concept_id)
+);
+
 create table if not exists user_settings (
   user_id uuid primary key references auth.users(id) on delete cascade,
   subject_id uuid not null references subjects(id) on delete restrict,
@@ -100,6 +112,16 @@ create table if not exists notebook_entries (
   concept_id uuid not null references concepts(id) on delete cascade,
   body_md text not null,
   created_at timestamptz not null default now()
+);
+
+create table if not exists user_notebook_entries (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  concept_id uuid not null references concepts(id) on delete cascade,
+  version int not null default 1 check (version > 0),
+  content jsonb not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  primary key (user_id, concept_id, version)
 );
 
 -- LLM output caching for cost control

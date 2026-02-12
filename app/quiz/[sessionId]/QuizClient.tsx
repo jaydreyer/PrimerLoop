@@ -2,6 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
+import { Alert } from "../../../components/ui/Alert";
+import { Badge } from "../../../components/ui/Badge";
+import { Button } from "../../../components/ui/Button";
+import { Card } from "../../../components/ui/Card";
 
 type QuizQuestion = {
   id: string;
@@ -103,38 +107,26 @@ export default function QuizClient({ sessionId, conceptTitle, quiz }: QuizClient
   }
 
   return (
-    <main style={{ maxWidth: 760, margin: "0 auto", padding: 20 }}>
-      <article
-        style={{
-          border: "1px solid #e7e7e7",
-          borderRadius: 14,
-          padding: 20,
-          background: "#fff",
-        }}
-      >
-        <p style={{ margin: 0, color: "#666", fontSize: 14 }}>{conceptTitle}</p>
-        <h1 style={{ marginTop: 8 }}>{quiz.title}</h1>
+    <main className="space-y-4">
+      <Card className="space-y-5">
+        <div className="space-y-2">
+          <Badge variant="muted">{conceptTitle}</Badge>
+          <h1 className="text-2xl font-semibold leading-snug sm:text-3xl">{quiz.title}</h1>
+        </div>
 
-        <form onSubmit={handleSubmit} style={{ display: "grid", gap: 18 }}>
+        <form onSubmit={handleSubmit} className="grid gap-6">
           {quiz.questions.map((question, index) => (
-            <section key={question.id}>
-              <h2 style={{ fontSize: 18, marginBottom: 8 }}>
+            <section key={question.id} className="space-y-3">
+              <h2 className="text-base font-semibold leading-relaxed text-slate-900 sm:text-lg">
                 {index + 1}. {question.prompt}
               </h2>
 
               {question.type === "mcq" && question.choices ? (
-                <div style={{ display: "grid", gap: 8 }}>
+                <div className="grid gap-2">
                   {question.choices.map((choice) => (
                     <label
                       key={choice}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                        border: "1px solid #ddd",
-                        borderRadius: 8,
-                        padding: "8px 10px",
-                      }}
+                      className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
                     >
                       <input
                         type="radio"
@@ -142,6 +134,7 @@ export default function QuizClient({ sessionId, conceptTitle, quiz }: QuizClient
                         value={choice}
                         checked={(answers[question.id] ?? "") === choice}
                         onChange={(event) => setAnswer(question.id, event.target.value)}
+                        className="mt-0.5 h-4 w-4 border-slate-300 text-slate-900"
                       />
                       <span>{choice}</span>
                     </label>
@@ -155,37 +148,19 @@ export default function QuizClient({ sessionId, conceptTitle, quiz }: QuizClient
                   value={answers[question.id] ?? ""}
                   onChange={(event) => setAnswer(question.id, event.target.value)}
                   rows={4}
-                  style={{
-                    width: "100%",
-                    border: "1px solid #ddd",
-                    borderRadius: 8,
-                    padding: 10,
-                    resize: "vertical",
-                  }}
+                  className="min-h-28 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 outline-none ring-slate-900/20 transition focus:ring sm:text-base"
                 />
               ) : null}
             </section>
           ))}
 
-          {error ? <p style={{ color: "#9f1d1d", margin: 0 }}>{error}</p> : null}
+          {error ? <Alert variant="error">{error}</Alert> : null}
 
-          <button
-            type="submit"
-            disabled={submitting}
-            style={{
-              width: "fit-content",
-              border: 0,
-              borderRadius: 10,
-              background: submitting ? "#6b7280" : "#111",
-              color: "#fff",
-              padding: "10px 16px",
-              cursor: submitting ? "not-allowed" : "pointer",
-            }}
-          >
+          <Button type="submit" disabled={submitting}>
             {submitting ? "Submitting..." : "Submit quiz"}
-          </button>
+          </Button>
         </form>
-      </article>
+      </Card>
     </main>
   );
 }

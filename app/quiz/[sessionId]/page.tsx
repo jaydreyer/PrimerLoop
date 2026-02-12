@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { Alert } from "../../../components/ui/Alert";
 import QuizClient from "./QuizClient";
 
 type QuizPageProps = {
@@ -24,9 +25,9 @@ export default async function QuizPage({ params }: QuizPageProps) {
       error?: string;
     };
     return (
-      <main style={{ maxWidth: 760, margin: "0 auto", padding: 20 }}>
-        <h1>Quiz</h1>
-        <p style={{ color: "#9f1d1d" }}>{body.error ?? "Unable to load quiz"}</p>
+      <main className="space-y-4">
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Quiz</h1>
+        <Alert variant="error">{body.error ?? "Unable to load quiz"}</Alert>
       </main>
     );
   }

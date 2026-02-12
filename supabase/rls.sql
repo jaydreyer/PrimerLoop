@@ -2,12 +2,14 @@ alter table subjects enable row level security;
 alter table concepts enable row level security;
 alter table concept_prerequisites enable row level security;
 alter table user_concepts enable row level security;
+alter table user_concept_mastery enable row level security;
 alter table user_settings enable row level security;
 alter table sessions enable row level security;
 alter table session_concepts enable row level security;
 alter table quiz_attempts enable row level security;
 alter table quiz_submissions enable row level security;
 alter table notebook_entries enable row level security;
+alter table user_notebook_entries enable row level security;
 alter table generated_assets enable row level security;
 
 drop policy if exists "subjects_read_only" on subjects;
@@ -28,6 +30,12 @@ for select using (true);
 drop policy if exists "user_concepts_owner" on user_concepts;
 create policy "user_concepts_owner"
   on user_concepts for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+drop policy if exists "user_concept_mastery_owner" on user_concept_mastery;
+create policy "user_concept_mastery_owner"
+  on user_concept_mastery for all
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
@@ -86,6 +94,12 @@ create policy "quiz_submissions_insert_owner"
 drop policy if exists "notebook_entries_owner" on notebook_entries;
 create policy "notebook_entries_owner"
   on notebook_entries for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+drop policy if exists "user_notebook_entries_owner" on user_notebook_entries;
+create policy "user_notebook_entries_owner"
+  on user_notebook_entries for all
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 

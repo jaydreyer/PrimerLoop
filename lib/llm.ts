@@ -7,6 +7,7 @@ import type { Difficulty } from "./types";
 import { PROMPT_FILES } from "./prompts";
 import { createSupabaseUserServer } from "./supabaseUserServer";
 import { requireLlmApiKey } from "./env.server";
+import { NotebookEntrySchema, type NotebookEntry } from "./notebook";
 
 export type GeneratedAssetType = "lesson" | "quiz" | "notebook_template";
 
@@ -179,6 +180,18 @@ type GenerateQuizInput = {
   subjectName: string;
 };
 
+type ContentTone = "interview" | "neutral";
+
+function contentTone(): ContentTone {
+  return process.env.CONTENT_TONE === "neutral" ? "neutral" : "interview";
+}
+
+type GenerateNotebookEntryInput = {
+  conceptTitle: string;
+  lesson: LessonContent;
+  quizResults?: unknown;
+};
+
 function fallbackLessonContent(input: GenerateLessonInput): LessonContent {
   const title = `${input.conceptName} (${input.difficulty})`;
   return {
@@ -187,21 +200,51 @@ function fallbackLessonContent(input: GenerateLessonInput): LessonContent {
       {
         heading: "Core Idea",
         bullets: [
-          `${input.conceptName} is part of the ${input.subjectName} learning track.`,
-          "Focus on understanding purpose, constraints, and practical usage.",
+          `${input.conceptName} in ${input.subjectName} is used to make model behavior reliable under real product constraints.`,
+          "It matters when latency, token cost, and answer quality must be balanced in one design.",
+          "You should be able to explain what signal it improves and what failure mode it reduces.",
         ],
       },
       {
-        heading: "How To Apply",
+        heading: "Mental Model",
         bullets: [
-          "Break the concept into one or two concrete implementation steps.",
-          "Relate it to a recent problem you solved or system you designed.",
+          "Think of this as a control surface: you tune one lever to improve quality while protecting latency and spend.",
+        ],
+      },
+      {
+        heading: "Worked Example",
+        bullets: [
+          "A support bot has a p95 latency budget of 2.0s and a max response cost of $0.02; adding query caching raises cache hit rate to 62%, cutting p95 from 2.8s to 1.6s.",
+        ],
+      },
+      {
+        heading: "Interview Angle",
+        bullets: [
+          "Interviewers probe tradeoffs: what gets worse when this gets better?",
+          "They often ask for failure modes and mitigation, not just a definition.",
+          "Common trap: describing the concept abstractly without metrics or constraints.",
+        ],
+      },
+      {
+        heading: "System Design Connection",
+        bullets: [
+          "In RAG systems, this influences retrieval precision versus latency budget.",
+          "In agent flows, it affects loop stability, tool-call count, and cost ceilings.",
+          "In eval pipelines, it changes what quality regressions you can detect early.",
+        ],
+      },
+      {
+        heading: "60-second recap",
+        bullets: [
+          `${input.conceptName} is useful when you must improve answer quality without breaking latency or cost constraints. In interviews, tie it to a concrete scenario, name one metric, and explain a tradeoff plus mitigation.`,
         ],
       },
     ],
     key_takeaways: [
-      `${input.conceptName} should be explained in clear, concise terms.`,
-      "You should connect this concept to real system decisions.",
+      "Define it with one concrete scenario, not generic language.",
+      "Anchor your explanation to a measurable constraint.",
+      "State one tradeoff and one mitigation.",
+      "Connect it to RAG, agents, caching, evals, or cost control.",
     ],
   };
 }
@@ -213,22 +256,62 @@ function fallbackQuizContent(input: GenerateQuizInput): QuizContent {
       {
         id: "q1",
         type: "mcq",
-        prompt: `Which statement best describes ${input.conceptName}?`,
+        prompt: `Conceptual MCQ: Which statement best describes ${input.conceptName}?`,
         choices: [
-          `A core concept in ${input.subjectName}`,
-          "An unrelated UI framework",
-          "A database backup command",
-          "A browser extension store",
+          `It helps balance quality, latency, and cost in ${input.subjectName} systems.`,
+          "It is a front-end styling framework.",
+          "It is only relevant to offline model training.",
+          "It replaces the need for evaluation.",
         ],
-        answer: `A core concept in ${input.subjectName}`,
+        answer: `It helps balance quality, latency, and cost in ${input.subjectName} systems.`,
       },
       {
         id: "q2",
+        type: "mcq",
+        prompt:
+          "Applied MCQ: A RAG endpoint exceeds a 2.0s p95 latency budget during traffic spikes. Which change is most likely to help first?",
+        choices: [
+          "Add retrieval-result caching and measure hit rate, latency, and answer quality.",
+          "Increase prompt length for every request regardless of query type.",
+          "Disable monitoring to reduce instrumentation overhead.",
+          "Always run the largest model variant for every request.",
+        ],
+        answer: "Add retrieval-result caching and measure hit rate, latency, and answer quality.",
+      },
+      {
+        id: "q3",
         type: "short",
-        prompt: `In 2-3 sentences, explain why ${input.conceptName} matters in practice.`,
-        rubric: "Mentions real use-case, tradeoff, or implementation concern.",
+        prompt: `In 2-4 sentences, explain how ${input.conceptName} changes design choices in an LLM app.`,
+        rubric:
+          'expected_points:["names one concrete app scenario","mentions at least one metric or limit","describes a tradeoff and mitigation"];common_mistakes:["generic definition only","no measurable constraint","no tradeoff discussion"]',
       },
     ],
+  };
+}
+
+function fallbackNotebookEntry(input: GenerateNotebookEntryInput): NotebookEntry {
+  return {
+    conceptTitle: input.conceptTitle,
+    summary: `${input.conceptTitle} is a practical concept used to make system behavior more reliable and explainable in interviews and production decisions.`,
+    definition: `${input.conceptTitle} is a core idea that links technical choices to measurable outcomes and tradeoffs.`,
+    whyItMatters: [
+      "Improves clarity when explaining architecture decisions under constraints.",
+      "Helps justify tradeoffs with concrete reasoning instead of vague claims.",
+      "Supports better debugging and iteration when performance changes.",
+    ],
+    commonPitfalls: [
+      "Using the concept without defining success metrics first.",
+      "Ignoring edge cases that break assumptions in production.",
+      "Over-optimizing complexity before validating baseline correctness.",
+    ],
+    microExample:
+      "A service with 200ms latency budget adds a retrieval step; by caching top queries, p95 drops from 380ms to 170ms while accuracy remains stable.",
+    flashcards: [
+      { q: `What problem does ${input.conceptTitle} solve?`, a: "It connects design choices to outcomes and tradeoffs." },
+      { q: `How do you evaluate ${input.conceptTitle}?`, a: "Use explicit metrics, constraints, and failure modes." },
+      { q: `What is a common mistake with ${input.conceptTitle}?`, a: "Skipping validation and relying on assumptions." },
+    ],
+    tags: ["architecture", "tradeoffs", "interview", "systems", "debugging"],
   };
 }
 
@@ -260,6 +343,9 @@ export async function generateLessonContent(input: GenerateLessonInput): Promise
     "",
     "Return strict JSON only with this exact shape:",
     '{ "title": string, "sections": [{ "heading": string, "bullets": string[] }], "key_takeaways": string[] }',
+    "Required section headings: Core Idea, Mental Model, Worked Example, Interview Angle, System Design Connection, 60-second recap.",
+    "Worked Example must include at least one concrete number, limit, or constraint.",
+    `Tone: ${contentTone()} (${contentTone() === "interview" ? "Bias toward LLM app interview framing." : "Use neutral instructional framing."})`,
     `Concept: ${input.conceptName}`,
     `Difficulty: ${input.difficulty}`,
     `Subject: ${input.subjectName}`,
@@ -320,10 +406,11 @@ export async function generateQuizContent(input: GenerateQuizInput): Promise<Qui
     "",
     "Return strict JSON only with this exact shape:",
     '{ "title": string, "questions": [{ "id": string, "type": "mcq" | "short", "prompt": string, "choices"?: string[], "answer"?: string, "rubric"?: string }] }',
+    "Generate exactly 3 questions: conceptual mcq, applied scenario mcq, and one short answer.",
+    `Tone: ${contentTone()} (${contentTone() === "interview" ? "Bias toward LLM app interview framing." : "Use neutral instructional framing."})`,
     `Concept: ${input.conceptName}`,
     `Difficulty: ${input.difficulty}`,
     `Subject: ${input.subjectName}`,
-    "Generate 6 questions total, mostly mcq with 1 short question.",
   ].join("\n");
 
   try {
@@ -362,6 +449,70 @@ export async function generateQuizContent(input: GenerateQuizInput): Promise<Qui
     return validated.data;
   } catch {
     return fallbackQuizContent(input);
+  }
+}
+
+export async function generateNotebookEntryContent(
+  input: GenerateNotebookEntryInput,
+): Promise<NotebookEntry> {
+  let llmApiKey: string;
+  try {
+    llmApiKey = requireLlmApiKey();
+  } catch {
+    return fallbackNotebookEntry(input);
+  }
+
+  const model = process.env.LLM_MODEL ?? "gpt-4.1-mini";
+  const promptPath = path.join(process.cwd(), PROMPT_FILES.notebookEntry);
+  const promptTemplate = await readFile(promptPath, "utf-8");
+
+  const instruction = [
+    promptTemplate,
+    "",
+    "Return strict JSON only with this exact shape:",
+    '{ "conceptTitle": string, "summary": string, "definition": string, "whyItMatters": string[], "commonPitfalls": string[], "microExample": string, "flashcards": [{ "q": string, "a": string }], "tags": string[] }',
+    `ConceptTitle: ${input.conceptTitle}`,
+    `LessonJSON: ${JSON.stringify(input.lesson)}`,
+    `QuizResultsJSON: ${JSON.stringify(input.quizResults ?? null)}`,
+  ].join("\n");
+
+  try {
+    const response = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${llmApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        temperature: 0.2,
+        input: instruction,
+      }),
+    });
+
+    if (!response.ok) {
+      return fallbackNotebookEntry(input);
+    }
+
+    const payload = (await response.json()) as {
+      output_text?: string;
+      output?: Array<{ content?: Array<{ text?: string }> }>;
+    };
+
+    const outputText =
+      payload.output_text ??
+      payload.output?.flatMap((item) => item.content ?? []).map((part) => part.text ?? "").join("\n") ??
+      "";
+
+    const parsed = parseJsonObject(outputText);
+    const validated = NotebookEntrySchema.safeParse(parsed);
+    if (!validated.success) {
+      return fallbackNotebookEntry(input);
+    }
+
+    return validated.data;
+  } catch {
+    return fallbackNotebookEntry(input);
   }
 }
 

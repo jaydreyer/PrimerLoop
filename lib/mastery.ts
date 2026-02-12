@@ -38,3 +38,16 @@ export function applyQuizResult(current: MasteryLevel, scoreRatio: number, now =
   const dueAt = nextDueAt(masteryLevel, now);
   return { masteryLevel, dueAt };
 }
+
+export function nextReviewAtFromPercent(percent: number, from = new Date()): Date {
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const days = percent >= 85 ? 14 : percent >= 70 ? 7 : percent >= 50 ? 3 : 1;
+  return new Date(from.getTime() + days * DAY_MS);
+}
+
+export function blendedMasteryScore(oldMastery: number, percent: number): number {
+  const prior = Number.isFinite(oldMastery) ? oldMastery : 0;
+  const attemptScore = Math.max(0, Math.min(1, percent / 100));
+  const blended = prior * 0.7 + attemptScore * 0.3;
+  return Number(blended.toFixed(4));
+}

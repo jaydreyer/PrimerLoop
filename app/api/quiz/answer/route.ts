@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseUserServer } from "../../../../lib/supabaseUserServer";
 import { clampScore, getCachedQuiz, gradeShortAnswer, QuizContentSchema } from "../../../../lib/llm";
+import { blendedMasteryScore, nextReviewAtFromPercent } from "../../../../lib/mastery";
 import type { SessionRow } from "../../../../lib/types";
 
 const quizAnswerBodySchema = z
@@ -148,6 +149,52 @@ export async function POST(request: Request) {
       },
       { status: 500 },
     );
+  }
+
+  const now = new Date();
+  const nextReviewAt = nextReviewAtFromPercent(percentage, now).toISOString();
+  const { data: existingMastery, error: existingMasteryError } = await supabase
+    .from("user_concept_mastery")
+    .select("mastery_score, review_count")
+    .eq("user_id", user.id)
+    .eq("subject_id", session.subject_id)
+    .eq("concept_id", session.concept_id)
+    .maybeSingle<{ mastery_score: number; review_count: number }>();
+
+  if (existingMasteryError) {
+    return NextResponse.json({ error: existingMasteryError.message }, { status: 500 });
+  }
+
+  if (existingMastery) {
+    const { error: updateMasteryError } = await supabase
+      .from("user_concept_mastery")
+      .update({
+        mastery_score: blendedMasteryScore(existingMastery.mastery_score, percentage),
+        review_count: existingMastery.review_count + 1,
+        last_attempt_at: now.toISOString(),
+        next_review_at: nextReviewAt,
+      })
+      .eq("user_id", user.id)
+      .eq("subject_id", session.subject_id)
+      .eq("concept_id", session.concept_id);
+
+    if (updateMasteryError) {
+      return NextResponse.json({ error: updateMasteryError.message }, { status: 500 });
+    }
+  } else {
+    const { error: insertMasteryError } = await supabase.from("user_concept_mastery").insert({
+      user_id: user.id,
+      subject_id: session.subject_id,
+      concept_id: session.concept_id,
+      mastery_score: Number((percentage / 100).toFixed(4)),
+      review_count: 1,
+      last_attempt_at: now.toISOString(),
+      next_review_at: nextReviewAt,
+    });
+
+    if (insertMasteryError) {
+      return NextResponse.json({ error: insertMasteryError.message }, { status: 500 });
+    }
   }
 
   return NextResponse.json(

@@ -1,8 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Alert } from "../../components/ui/Alert";
+import { Badge } from "../../components/ui/Badge";
+import { Button } from "../../components/ui/Button";
+import { Card } from "../../components/ui/Card";
 
 type TodaySession = {
   sessionId: string;
@@ -84,83 +87,40 @@ export default function TodayPage() {
   }
 
   return (
-    <main style={{ maxWidth: 560, margin: "0 auto", padding: 20 }}>
-      <h1 style={{ marginBottom: 8 }}>Today</h1>
-      <p style={{ marginTop: 0, color: "#444" }}>Your focused daily learning session.</p>
+    <main className="space-y-4">
+      <header className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Today</h1>
+        <p className="max-w-prose text-sm text-slate-600 sm:text-base">
+          Your focused daily learning session.
+        </p>
+      </header>
 
       {loading ? (
-        <section
-          style={{
-            border: "1px solid #e6e6e6",
-            borderRadius: 12,
-            padding: 16,
-            background: "#fff",
-          }}
-        >
-          <p style={{ margin: 0 }}>Loading your session...</p>
-        </section>
+        <Card>
+          <p className="m-0 text-sm text-slate-700">Loading your session...</p>
+        </Card>
       ) : null}
 
       {!loading && error ? (
-        <section
-          style={{
-            border: "1px solid #f2caca",
-            borderRadius: 12,
-            padding: 16,
-            background: "#fff7f7",
-            marginBottom: 12,
-          }}
-        >
-          <p style={{ margin: 0, color: "#9f1d1d" }}>{error}</p>
-        </section>
+        <Alert variant="error">{error}</Alert>
       ) : null}
 
       {!loading && !error && session ? (
-        <section
-          style={{
-            border: "1px solid #e6e6e6",
-            borderRadius: 12,
-            padding: 16,
-            background: "#fff",
-          }}
-        >
-          <p style={{ margin: 0, color: "#666", fontSize: 14 }}>Today&apos;s Concept</p>
-          <h2 style={{ marginTop: 8, marginBottom: 16, fontSize: 20 }}>
+        <Card className="space-y-4">
+          <Badge variant="muted">Today&apos;s Concept</Badge>
+          <h2 className="text-xl font-semibold leading-snug sm:text-2xl">
             {session.conceptName ?? "Concept will appear once content is generated"}
           </h2>
-          <Link
-            href={`/lesson/${session.sessionId}`}
-            style={{
-              display: "inline-block",
-              background: "#111",
-              color: "#fff",
-              padding: "10px 14px",
-              borderRadius: 8,
-              textDecoration: "none",
-            }}
-          >
-            Continue
-          </Link>
-        </section>
+          <div>
+            <Button href={`/lesson/${session.sessionId}`}>Continue</Button>
+          </div>
+        </Card>
       ) : null}
 
       {!loading && !error && !session ? (
-        <button
-          type="button"
-          onClick={startSession}
-          disabled={starting}
-          style={{
-            border: 0,
-            background: starting ? "#6b7280" : "#111",
-            color: "#fff",
-            padding: "12px 16px",
-            borderRadius: 10,
-            cursor: starting ? "not-allowed" : "pointer",
-            fontSize: 15,
-          }}
-        >
+        <Button type="button" onClick={startSession} disabled={starting}>
           {starting ? "Starting..." : "Start today's session"}
-        </button>
+        </Button>
       ) : null}
     </main>
   );

@@ -47,6 +47,7 @@ Set these in `.env.local`:
 - `SUPABASE_SERVICE_ROLE_KEY`: server-only key for admin cache writes.
 - `LLM_API_KEY`: server-only key for lesson/quiz generation and short-answer grading.
 - `LLM_MODEL`: model id for generation/grading, default `gpt-4.1-mini`.
+- `CONTENT_TONE`: optional content framing for generation (`interview` default, or `neutral`).
 - `ADMIN_API_KEY`: server-only shared secret required by admin cache routes (`x-admin-api-key`).
 
 ## Secret Safety
@@ -55,3 +56,12 @@ Set these in `.env.local`:
 - Keep secret keys only in `.env.local` (and deployment secret managers in prod).
 - Do not expose `SUPABASE_SERVICE_ROLE_KEY`, `LLM_API_KEY`, or `ADMIN_API_KEY` in client code.
 - Restart the dev server after changing `.env.local`.
+
+## Supabase Auth Redirect URLs (Local + LAN)
+
+For magic-link auth to work on both your local machine and devices on your LAN, add both callback URLs in Supabase Auth settings:
+
+- `http://localhost:3001/auth/callback`
+- `http://<LAN-IP>:3001/auth/callback`
+
+Use the **Network** URL printed by `next dev` to find your LAN IP, then copy that IP into the second URL.

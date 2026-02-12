@@ -1,5 +1,8 @@
-import Link from "next/link";
 import { headers } from "next/headers";
+import { Alert } from "../../../components/ui/Alert";
+import { Badge } from "../../../components/ui/Badge";
+import { Button } from "../../../components/ui/Button";
+import { Card } from "../../../components/ui/Card";
 
 type LessonPageProps = {
   params: Promise<{ sessionId: string }>;
@@ -24,9 +27,9 @@ export default async function LessonPage({ params }: LessonPageProps) {
       error?: string;
     };
     return (
-      <main style={{ maxWidth: 760, margin: "0 auto", padding: 20 }}>
-        <h1>Lesson</h1>
-        <p style={{ color: "#9f1d1d" }}>{errorBody.error ?? "Unable to load lesson"}</p>
+      <main className="space-y-4">
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Lesson</h1>
+        <Alert variant="error">{errorBody.error ?? "Unable to load lesson"}</Alert>
       </main>
     );
   }
@@ -41,58 +44,37 @@ export default async function LessonPage({ params }: LessonPageProps) {
   };
 
   return (
-    <main style={{ maxWidth: 760, margin: "0 auto", padding: 20 }}>
-      <article
-        style={{
-          border: "1px solid #e7e7e7",
-          borderRadius: 14,
-          padding: 20,
-          background: "#fff",
-        }}
-      >
-        <p style={{ margin: 0, color: "#555", fontSize: 14 }}>{payload.concept.name}</p>
-        <h1 style={{ marginTop: 8 }}>{payload.lesson.title}</h1>
+    <main className="space-y-4">
+      <Card className="space-y-5">
+        <div className="space-y-2">
+          <Badge variant="muted">{payload.concept.name}</Badge>
+          <h1 className="text-2xl font-semibold leading-snug sm:text-3xl">{payload.lesson.title}</h1>
+        </div>
 
         {payload.lesson.sections.map((section) => (
-          <section key={section.heading} style={{ marginTop: 16 }}>
-            <h2 style={{ fontSize: 20, marginBottom: 8 }}>{section.heading}</h2>
-            <ul style={{ margin: 0, paddingLeft: 20 }}>
+          <section key={section.heading} className="space-y-2">
+            <h2 className="text-lg font-semibold sm:text-xl">{section.heading}</h2>
+            <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700 sm:text-base">
               {section.bullets.map((bullet) => (
-                <li key={bullet} style={{ marginBottom: 6 }}>
-                  {bullet}
-                </li>
+                <li key={bullet}>{bullet}</li>
               ))}
             </ul>
           </section>
         ))}
 
-        <section style={{ marginTop: 18 }}>
-          <h2 style={{ fontSize: 20, marginBottom: 8 }}>Key Takeaways</h2>
-          <ul style={{ margin: 0, paddingLeft: 20 }}>
+        <section className="space-y-2">
+          <h2 className="text-lg font-semibold sm:text-xl">Key Takeaways</h2>
+          <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700 sm:text-base">
             {payload.lesson.key_takeaways.map((item) => (
-              <li key={item} style={{ marginBottom: 6 }}>
-                {item}
-              </li>
+              <li key={item}>{item}</li>
             ))}
           </ul>
         </section>
 
-        <div style={{ marginTop: 22 }}>
-          <Link
-            href={`/quiz/${sessionId}`}
-            style={{
-              display: "inline-block",
-              textDecoration: "none",
-              background: "#111",
-              color: "#fff",
-              borderRadius: 10,
-              padding: "10px 14px",
-            }}
-          >
-            Go to quiz
-          </Link>
+        <div className="pt-1">
+          <Button href={`/quiz/${sessionId}`}>Go to quiz</Button>
         </div>
-      </article>
+      </Card>
     </main>
   );
 }
