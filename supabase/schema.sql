@@ -91,6 +91,9 @@ create table if not exists quiz_submissions (
   created_at timestamptz not null default now()
 );
 
+create index if not exists idx_quiz_submissions_user_session_created_at
+on quiz_submissions (user_id, session_id, created_at desc);
+
 create table if not exists notebook_entries (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
