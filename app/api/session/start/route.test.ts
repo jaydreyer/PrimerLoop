@@ -17,7 +17,14 @@ type StartRouteMockConfig = {
   existingSession?: MaybeResult<{ id: string }>;
   userSettings?: MaybeResult<{ subject_id: string }>;
   defaultSubject?: MaybeResult<{ id: string }>;
-  firstConcept?: MaybeResult<{ id: string; difficulty: "beginner" | "intermediate" | "advanced" }>;
+  concepts?: {
+    data: Array<{ id: string; difficulty: "beginner" | "intermediate" | "advanced" | null; created_at: string | null }> | null;
+    error: { message: string } | null;
+  };
+  mastery?: {
+    data: Array<{ concept_id: string; mastery_score: number; next_review_at: string | null }> | null;
+    error: { message: string } | null;
+  };
   createdSession?: MaybeResult<{ id: string }>;
 };
 
@@ -28,9 +35,11 @@ function buildSupabase(config: StartRouteMockConfig) {
     config.userSettings ?? ({ data: null, error: null } satisfies MaybeResult<{ subject_id: string }>);
   const defaultSubject =
     config.defaultSubject ?? ({ data: null, error: null } satisfies MaybeResult<{ id: string }>);
-  const firstConcept =
-    config.firstConcept ??
-    ({ data: null, error: null } satisfies MaybeResult<{ id: string; difficulty: "beginner" }>);
+  const concepts = config.concepts ?? {
+    data: [{ id: "concept-1", difficulty: "beginner", created_at: "2026-01-01T00:00:00.000Z" }],
+    error: null,
+  };
+  const mastery = config.mastery ?? { data: [], error: null };
   const createdSession =
     config.createdSession ?? ({ data: { id: "session-new" }, error: null } satisfies MaybeResult<{ id: string }>);
 
@@ -67,7 +76,8 @@ function buildSupabase(config: StartRouteMockConfig) {
 
       if (table === "subjects") {
         const chain = {
-          eq: vi.fn(() => chain),
+          order: vi.fn(() => chain),
+          limit: vi.fn(() => chain),
           maybeSingle: vi.fn(async () => defaultSubject),
         };
         return { select: vi.fn(() => chain) };
@@ -77,8 +87,15 @@ function buildSupabase(config: StartRouteMockConfig) {
         const chain = {
           eq: vi.fn(() => chain),
           order: vi.fn(() => chain),
-          limit: vi.fn(() => chain),
-          maybeSingle: vi.fn(async () => firstConcept),
+          then: (resolve: (value: unknown) => unknown) => resolve(concepts),
+        };
+        return { select: vi.fn(() => chain) };
+      }
+
+      if (table === "user_concept_mastery") {
+        const chain = {
+          eq: vi.fn(() => chain),
+          then: (resolve: (value: unknown) => unknown) => resolve(mastery),
         };
         return { select: vi.fn(() => chain) };
       }
@@ -165,7 +182,11 @@ describe("POST /api/session/start", () => {
         user: { id: "user-1" },
         existingSession: { data: null, error: null },
         userSettings: { data: { subject_id: "subject-1" }, error: null },
-        firstConcept: { data: { id: "concept-1", difficulty: "beginner" }, error: null },
+        concepts: {
+          data: [{ id: "concept-1", difficulty: "beginner", created_at: "2026-01-01T00:00:00.000Z" }],
+          error: null,
+        },
+        mastery: { data: [], error: null },
         createdSession: { data: { id: "session-new" }, error: null },
       }),
     );
@@ -183,7 +204,11 @@ describe("POST /api/session/start", () => {
         user: { id: "user-1" },
         existingSession: { data: null, error: null },
         userSettings: { data: { subject_id: "subject-1" }, error: null },
-        firstConcept: { data: { id: "concept-1", difficulty: "beginner" }, error: null },
+        concepts: {
+          data: [{ id: "concept-1", difficulty: "beginner", created_at: "2026-01-01T00:00:00.000Z" }],
+          error: null,
+        },
+        mastery: { data: [], error: null },
         createdSession: { data: null, error: { message: "insert failure" } },
       }),
     );

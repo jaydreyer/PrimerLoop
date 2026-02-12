@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseUserServer } from "../../../../lib/supabaseUserServer";
 import type { Difficulty } from "../../../../lib/types";
+import { chooseSessionConcept } from "../../../../lib/sessionSelection";
 
 const sessionStartBodySchema = z
   .object({
@@ -60,9 +61,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ sessionId: existing.id, existing: true }, { status: 200 });
   }
 
-  // Deterministic temporary concept selection for scaffolded sessions.
   let selectedSubjectId: string | null = null;
-  let selectedConcept: { id: string; difficulty: Difficulty } | null = null;
 
   const { data: userSettings } = await supabase
     .from("user_settings")
@@ -73,26 +72,16 @@ export async function POST(request: Request) {
   selectedSubjectId = userSettings?.subject_id ?? null;
 
   if (!selectedSubjectId) {
-    const { data: defaultSubject } = await supabase
+    const { data: firstSubject } = await supabase
       .from("subjects")
       .select("id")
-      .eq("slug", "ai-llm-systems")
-      .maybeSingle<{ id: string }>();
-    selectedSubjectId = defaultSubject?.id ?? null;
-  }
-
-  if (selectedSubjectId) {
-    const { data: firstConcept } = await supabase
-      .from("concepts")
-      .select("id, difficulty")
-      .eq("subject_id", selectedSubjectId)
       .order("created_at", { ascending: true })
       .limit(1)
-      .maybeSingle<{ id: string; difficulty: Difficulty }>();
-    selectedConcept = firstConcept ?? null;
+      .maybeSingle<{ id: string }>();
+    selectedSubjectId = firstSubject?.id ?? null;
   }
 
-  if (!selectedSubjectId || !selectedConcept?.id || !selectedConcept.difficulty) {
+  if (!selectedSubjectId) {
     return NextResponse.json(
       {
         error:
@@ -102,6 +91,81 @@ export async function POST(request: Request) {
     );
   }
 
+  const now = new Date();
+
+  const { data: allConcepts, error: conceptsError } = await supabase
+    .from("concepts")
+    .select("id, difficulty, created_at")
+    .eq("subject_id", selectedSubjectId)
+    .order("created_at", { ascending: true });
+
+  if (conceptsError) {
+    return NextResponse.json({ error: conceptsError.message }, { status: 500 });
+  }
+
+  const concepts = (allConcepts ?? []) as Array<{
+    id: string;
+    difficulty: Difficulty | null;
+    created_at: string | null;
+  }>;
+  const conceptById = new Map(concepts.map((concept) => [concept.id, concept]));
+
+  const { data: masteryRows, error: masteryError } = await supabase
+    .from("user_concept_mastery")
+    .select("concept_id, mastery_score, next_review_at")
+    .eq("user_id", user.id)
+    .eq("subject_id", selectedSubjectId);
+
+  if (masteryError) {
+    return NextResponse.json({ error: masteryError.message }, { status: 500 });
+  }
+
+  const mastery = (masteryRows ?? []) as Array<{
+    concept_id: string;
+    mastery_score: number;
+    next_review_at: string | null;
+  }>;
+  const seenConceptIds = new Set(mastery.map((row) => row.concept_id));
+
+  const selection = chooseSessionConcept(
+    {
+      dueReviews: mastery.map((row) => ({
+        conceptId: row.concept_id,
+        nextReviewAt: row.next_review_at,
+      })),
+      newConcepts: concepts
+        .filter((concept) => !seenConceptIds.has(concept.id))
+        .map((concept) => ({
+          conceptId: concept.id,
+          createdAt: concept.created_at,
+          difficulty: concept.difficulty,
+        })),
+      fallbackConcepts: mastery.map((row) => ({
+        conceptId: row.concept_id,
+        masteryScore: row.mastery_score,
+        nextReviewAt: row.next_review_at,
+      })),
+    },
+    now,
+  );
+
+  if (!selection) {
+    return NextResponse.json(
+      {
+        error:
+          "Session metadata missing (subject_id, concept_id, or difficulty). Backfill sessions or seed subjects/concepts before starting sessions.",
+      },
+      { status: 500 },
+    );
+  }
+
+  const selectedConcept = conceptById.get(selection.conceptId);
+  if (!selectedConcept) {
+    return NextResponse.json({ error: "Selected concept not found" }, { status: 500 });
+  }
+
+  const selectedDifficulty: Difficulty = selectedConcept.difficulty ?? "beginner";
+
   const { data: created, error: createError } = await supabase
     .from("sessions")
     .insert({
@@ -110,7 +174,7 @@ export async function POST(request: Request) {
       status: "active",
       subject_id: selectedSubjectId,
       concept_id: selectedConcept.id,
-      difficulty: selectedConcept.difficulty,
+      difficulty: selectedDifficulty,
     })
     .select("id")
     .single<{ id: string }>();
@@ -123,7 +187,7 @@ export async function POST(request: Request) {
     {
       session_id: created.id,
       concept_id: selectedConcept.id,
-      kind: "new",
+      kind: selection.source === "new_concept" ? "new" : "review",
       question_count: 6,
     },
     { onConflict: "session_id,concept_id" },
