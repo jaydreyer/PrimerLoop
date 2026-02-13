@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-type ButtonVariant = "primary" | "secondary";
+type ButtonVariant = "primary" | "secondary" | "ghost";
 
 type CommonProps = {
   children: ReactNode;
@@ -29,11 +29,13 @@ function classNames(...parts: Array<string | false | null | undefined>): string 
 
 function baseClasses(variant: ButtonVariant, disabled = false): string {
   return classNames(
-    "inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors",
-    "w-full sm:w-auto",
-    variant === "primary" && "bg-slate-900 text-white hover:bg-slate-700",
-    variant === "secondary" && "bg-white text-slate-800 ring-1 ring-slate-200 hover:bg-slate-100",
-    disabled && "cursor-not-allowed bg-slate-400 hover:bg-slate-400",
+    "inline-flex h-12 w-full items-center justify-center rounded-xl px-4 text-sm font-medium transition-colors sm:w-auto",
+    variant === "primary" &&
+      "bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)]",
+    variant === "secondary" &&
+      "border border-[var(--border)] bg-transparent text-[var(--text)] hover:bg-white/5 dark:hover:bg-white/[0.04]",
+    variant === "ghost" && "bg-transparent text-[var(--muted)] hover:text-[var(--text)]",
+    disabled && "cursor-not-allowed opacity-60 hover:bg-inherit hover:text-inherit",
   );
 }
 

@@ -18,7 +18,7 @@ export function AppNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="mb-6 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
+    <nav className="mb-4 rounded-xl border border-[var(--border)] bg-[var(--surface-2)]/80 p-1.5 shadow-none backdrop-blur">
       <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {NAV_LINKS.map((link) => {
           const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
@@ -29,8 +29,8 @@ export function AppNav() {
                 className={classNames(
                   "block rounded-xl px-3 py-2 text-center text-sm font-medium transition-colors",
                   active
-                    ? "bg-slate-900 text-white"
-                    : "text-slate-700 hover:bg-slate-100",
+                    ? "bg-[var(--surface-1)] text-[var(--text)]"
+                    : "text-[var(--muted2)] hover:bg-white/[0.03] hover:text-[var(--muted)]",
                 )}
               >
                 {link.label}

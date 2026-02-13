@@ -3,9 +3,35 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --bg: #0f1116;
+    --surface-1: #161922;
+    --surface-2: #12141b;
+    --border: rgba(255, 255, 255, 0.06);
+    --text: rgba(255, 255, 255, 0.92);
+    --muted: rgba(255, 255, 255, 0.7);
+    --muted2: rgba(255, 255, 255, 0.55);
+    --accent: #5b5fef;
+    --accent-hover: #6c70ff;
+  }
+
+  :root.light {
+    --bg: #f6f7f9;
+    --surface-1: #ffffff;
+    --surface-2: #ffffff;
+    --border: rgba(0, 0, 0, 0.08);
+    --text: rgba(10, 12, 18, 0.92);
+    --muted: rgba(10, 12, 18, 0.7);
+    --muted2: rgba(10, 12, 18, 0.55);
+    --accent: #3f46e8;
+    --accent-hover: #4f57ff;
+  }
+
   html,
   body {
-    @apply bg-slate-50 text-slate-900 antialiased;
+    background: var(--bg);
+    color: var(--text);
+    @apply antialiased;
   }
 
   a {
