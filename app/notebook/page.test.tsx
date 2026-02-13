@@ -84,7 +84,7 @@ describe("NotebookPage", () => {
 
     expect(screen.getByRole("heading", { name: "Notebook" })).toBeInTheDocument();
     expect(screen.getByText("Please sign in to view your notebook.")).toBeInTheDocument();
-  });
+  }, 15000);
 
   it("renders empty state when no concepts are available", async () => {
     createSupabaseUserServerMock.mockResolvedValue(

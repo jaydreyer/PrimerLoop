@@ -35,6 +35,35 @@ export type CurriculumSelection = {
   source: "due_review" | "fallback" | "new_concept";
 };
 
+export type ConceptStatus = "Locked" | "Available" | "In Review" | "Mastered";
+
+export type CurriculumStatusConcept = {
+  id: string;
+  title?: string;
+  track?: string;
+  prerequisiteIds: string[];
+  createdAt?: string | null;
+};
+
+export type CurriculumStatusRow = {
+  conceptId: string;
+  masteryScore: number;
+  nextReviewAt: string | null;
+};
+
+export type CurriculumStatusItem = {
+  conceptId: string;
+  title?: string;
+  track?: string;
+  status: ConceptStatus;
+  unlocked: boolean;
+  mastered: boolean;
+  masteryScore: number;
+  masteryLevel: number;
+  nextReviewAt: string | null;
+  prerequisiteIds: string[];
+};
+
 function mergeConfig(config?: Partial<SessionPlannerConfig>): SessionPlannerConfig {
   return { ...DEFAULT_SESSION_CONFIG, ...config };
 }
@@ -127,6 +156,65 @@ export function isUnlockedByPrerequisites(
   return concept.prerequisiteIds.every((prerequisiteId) => {
     const score = masteryByConceptId.get(prerequisiteId);
     return typeof score === "number" && score >= UNLOCK_MASTERY_THRESHOLD;
+  });
+}
+
+function clampMasteryLevel(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  if (value <= 0) return 0;
+  if (value >= 4) return 4;
+  return value;
+}
+
+function masteryLevelFromScore(score: number): number {
+  // Backward compatible with legacy 0..1 scores while supporting 0..4 progression.
+  if (score >= 0 && score <= 1) {
+    return clampMasteryLevel(Math.round(score * 4));
+  }
+  return clampMasteryLevel(Math.round(score));
+}
+
+export function deriveConceptStatuses(
+  concepts: CurriculumStatusConcept[],
+  masteryRows: CurriculumStatusRow[],
+  now = new Date(),
+): CurriculumStatusItem[] {
+  const orderedConcepts = sortByCurriculumOrder(concepts);
+  const masteryByConceptId = new Map(masteryRows.map((row) => [row.conceptId, row]));
+  const masteryScoreByConceptId = new Map(masteryRows.map((row) => [row.conceptId, row.masteryScore]));
+  const nowMs = now.getTime();
+
+  return orderedConcepts.map((concept) => {
+    const mastery = masteryByConceptId.get(concept.id);
+    const masteryScore = mastery?.masteryScore ?? 0;
+    const mastered = masteryScore >= MASTERED_MASTERY_THRESHOLD;
+    const unlocked = isUnlockedByPrerequisites(concept, masteryScoreByConceptId);
+    const nextReviewAt = mastery?.nextReviewAt ?? null;
+    const nextReviewMs = nextReviewAt ? new Date(nextReviewAt).getTime() : Number.NaN;
+    const hasScheduledReview = Number.isFinite(nextReviewMs);
+    const isDueReview = hasScheduledReview && nextReviewMs <= nowMs;
+
+    let status: ConceptStatus = "Available";
+    if (mastered) {
+      status = "Mastered";
+    } else if (!unlocked) {
+      status = "Locked";
+    } else if (hasScheduledReview || isDueReview) {
+      status = "In Review";
+    }
+
+    return {
+      conceptId: concept.id,
+      title: concept.title,
+      track: concept.track,
+      status,
+      unlocked,
+      mastered,
+      masteryScore,
+      masteryLevel: masteryLevelFromScore(masteryScore),
+      nextReviewAt,
+      prerequisiteIds: concept.prerequisiteIds,
+    };
   });
 }
 

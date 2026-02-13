@@ -1,5 +1,5 @@
 import { createSupabaseUserServer } from "../../lib/supabaseUserServer";
-import { isUnlockedByPrerequisites, MASTERED_MASTERY_THRESHOLD } from "../../lib/sessionEngine";
+import { deriveConceptStatuses, type ConceptStatus } from "../../lib/sessionEngine";
 
 type ConceptRow = {
   id: string;
@@ -8,18 +8,10 @@ type ConceptRow = {
   created_at: string | null;
 };
 
-type MasteryRow = {
-  concept_id: string;
-  mastery_score: number;
-  next_review_at: string | null;
-};
-
 type PrerequisiteRow = {
   concept_id: string;
   prerequisite_concept_id: string;
 };
-
-type ConceptStatus = "Locked" | "Available" | "In Review" | "Mastered";
 
 function statusClasses(status: ConceptStatus): string {
   if (status === "Locked") return "bg-slate-200 text-slate-700";
@@ -102,12 +94,21 @@ export default async function ProgressPage() {
     prerequisitesByConceptId.set(row.concept_id, current);
   }
 
-  const masteryByConceptId = new Map<string, MasteryRow>();
-  const masteryScoreByConceptId = new Map<string, number>();
-  for (const row of (masteryRows ?? []) as MasteryRow[]) {
-    masteryByConceptId.set(row.concept_id, row);
-    masteryScoreByConceptId.set(row.concept_id, row.mastery_score);
-  }
+  const statuses = deriveConceptStatuses(
+    conceptRows.map((concept) => ({
+      id: concept.id,
+      title: concept.title,
+      track: undefined,
+      prerequisiteIds: prerequisitesByConceptId.get(concept.id) ?? [],
+      createdAt: concept.created_at,
+    })),
+    (masteryRows ?? []).map((row) => ({
+      conceptId: row.concept_id as string,
+      masteryScore: Number(row.mastery_score ?? 0),
+      nextReviewAt: (row.next_review_at as string | null) ?? null,
+    })),
+  );
+  const statusByConceptId = new Map(statuses.map((item) => [item.conceptId, item]));
 
   return (
     <main className="space-y-4">
@@ -118,21 +119,9 @@ export default async function ProgressPage() {
 
       <section className="grid gap-3">
         {conceptRows.map((concept) => {
-          const prerequisites = prerequisitesByConceptId.get(concept.id) ?? [];
-          const unlocked = isUnlockedByPrerequisites(
-            { prerequisiteIds: prerequisites },
-            masteryScoreByConceptId,
-          );
-          const mastery = masteryByConceptId.get(concept.id);
-
-          let status: ConceptStatus = "Available";
-          if (typeof mastery?.mastery_score === "number" && mastery.mastery_score >= MASTERED_MASTERY_THRESHOLD) {
-            status = "Mastered";
-          } else if (!unlocked) {
-            status = "Locked";
-          } else if (mastery?.next_review_at) {
-            status = "In Review";
-          }
+          const statusItem = statusByConceptId.get(concept.id);
+          const status: ConceptStatus = statusItem?.status ?? "Available";
+          const prerequisites = statusItem?.prerequisiteIds ?? [];
 
           const prerequisiteTitles = prerequisites
             .map((id) => conceptById.get(id)?.title ?? id)
@@ -148,11 +137,11 @@ export default async function ProgressPage() {
               {status === "Locked" && prerequisiteTitles ? (
                 <p className="mt-2 text-sm text-slate-700">Prereqs: {prerequisiteTitles}</p>
               ) : null}
-              {status !== "Locked" && mastery ? (
+              {status !== "Locked" ? (
                 <p className="mt-2 text-sm text-slate-700">
-                  Mastery score: {mastery.mastery_score}
-                  {mastery.next_review_at
-                    ? ` · Next review: ${new Date(mastery.next_review_at).toLocaleDateString()}`
+                  Mastery: {statusItem?.masteryLevel ?? 0} / 4
+                  {statusItem?.nextReviewAt
+                    ? ` · Next review: ${new Date(statusItem.nextReviewAt).toLocaleDateString()}`
                     : ""}
                 </p>
               ) : null}

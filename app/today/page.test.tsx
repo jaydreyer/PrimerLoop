@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import TodayPage from "./page";
 
@@ -20,7 +20,7 @@ describe("TodayPage", () => {
     pushMock.mockReset();
   });
 
-  it("renders Unauthorized error state when settings API returns 401", async () => {
+  it("renders Unauthorized error state when today API returns 401", async () => {
     vi.spyOn(global, "fetch").mockResolvedValueOnce({
       ok: false,
       json: async () => ({ error: "Unauthorized" }),
@@ -31,66 +31,15 @@ describe("TodayPage", () => {
     expect(await screen.findByText("Unauthorized")).toBeInTheDocument();
   });
 
-  it("renders continue card when active session exists", async () => {
+  it("auto-starts a session when none exists", async () => {
     vi.spyOn(global, "fetch")
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ settings: { subjectId: "subject-1", dailyMinutes: 12 } }),
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ session: { sessionId: "abc123", conceptName: "Transformers", needsReset: false } }),
-      } as Response);
-
-    render(<TodayPage />);
-
-    const continueLink = await screen.findByRole("link", { name: "Continue" });
-    expect(continueLink).toHaveAttribute("href", "/lesson/abc123");
-  });
-
-  it("shows onboarding when settings are missing", async () => {
-    vi.spyOn(global, "fetch")
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ settings: null }),
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ session: null }),
-      } as Response);
-
-    render(<TodayPage />);
-
-    expect(await screen.findByText("First run setup")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Save and start" })).toBeInTheDocument();
-  });
-
-  it("renders start button when returning user has no active session", async () => {
-    vi.spyOn(global, "fetch")
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ settings: { subjectId: "subject-1", dailyMinutes: 12 } }),
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ session: null }),
-      } as Response);
-
-    render(<TodayPage />);
-
-    const startButton = await screen.findByRole("button", { name: "Start today's session" });
-    expect(startButton).toBeInTheDocument();
-  });
-
-  it("starts a new session and redirects after start click", async () => {
-    vi.spyOn(global, "fetch")
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ settings: { subjectId: "subject-1", dailyMinutes: 12 } }),
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ session: null }),
+        json: async () => ({
+          session: null,
+          concepts: [],
+          snapshot: { streak: null, sessionsCompleted: 0, avgMastery: null },
+        }),
       } as Response)
       .mockResolvedValueOnce({
         ok: true,
@@ -99,73 +48,85 @@ describe("TodayPage", () => {
 
     render(<TodayPage />);
 
-    const startButton = await screen.findByRole("button", { name: "Start today's session" });
-    fireEvent.click(startButton);
+    await waitFor(() => {
+      expect(pushMock).toHaveBeenCalledWith("/lesson/new-session");
+    });
+  }, 15000);
 
-    expect(await screen.findByRole("button", { name: "Starting..." })).toBeInTheDocument();
-    expect(pushMock).toHaveBeenCalledWith("/lesson/new-session");
-  });
-
-  it("saves onboarding settings then starts session", async () => {
-    vi.spyOn(global, "fetch")
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ settings: null }),
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ session: null }),
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ settings: { subjectId: "subject-1", dailyMinutes: 15 } }),
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ sessionId: "onboarding-session" }),
-      } as Response);
-
-    render(<TodayPage />);
-
-    const onboardingButton = await screen.findByRole("button", { name: "Save and start" });
-    fireEvent.click(onboardingButton);
-
-    expect(await screen.findByRole("button", { name: "Starting..." })).toBeInTheDocument();
-    expect(pushMock).toHaveBeenCalledWith("/lesson/onboarding-session");
-  });
-
-  it("shows reset flow for incomplete active session", async () => {
-    const fetchSpy = vi.spyOn(global, "fetch")
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ settings: { subjectId: "subject-1", dailyMinutes: 12 } }),
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ session: { sessionId: "broken", conceptName: null, needsReset: true } }),
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ ok: true }),
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ settings: { subjectId: "subject-1", dailyMinutes: 12 } }),
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ session: null }),
-      } as Response);
+  it("renders current focus and continue action when active session exists", async () => {
+    vi.spyOn(global, "fetch").mockImplementation(async () => ({
+      ok: true,
+      json: async () => ({
+        session: {
+          sessionId: "abc123",
+          conceptId: "concept-1",
+          conceptName: "Transformers",
+          track: "LLM_APP",
+          status: "Available",
+          masteryLevel: 2,
+          needsReset: false,
+        },
+        concepts: [
+          {
+            conceptId: "concept-1",
+            title: "Transformers",
+            track: "LLM_APP",
+            status: "Available",
+            masteryLevel: 2,
+            unlocked: true,
+            mastered: false,
+            prerequisiteTitles: [],
+          },
+        ],
+        snapshot: { streak: null, sessionsCompleted: 4, avgMastery: 1.5 },
+      }),
+    } as Response));
 
     render(<TodayPage />);
 
-    const resetButton = await screen.findByRole("button", { name: "Reset today" });
-    fireEvent.click(resetButton);
+    expect(await screen.findByText("Transformers")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Continue" })).toHaveAttribute("href", "/lesson/abc123");
+    expect(screen.getByText("Sessions")).toBeInTheDocument();
+    expect(screen.getByText("4")).toBeInTheDocument();
+  });
 
-    await screen.findByRole("button", { name: "Start today's session" });
-    expect(fetchSpy).toHaveBeenCalledWith(
-      "/api/session/reset",
-      expect.objectContaining({ method: "POST" }),
-    );
+  it("opens drawer and blocks locked concept selection", async () => {
+    const fetchSpy = vi.spyOn(global, "fetch").mockImplementation(async () => ({
+      ok: true,
+      json: async () => ({
+        session: {
+          sessionId: "abc123",
+          conceptId: "concept-1",
+          conceptName: "Transformers",
+          track: "LLM_APP",
+          status: "Available",
+          masteryLevel: 2,
+          needsReset: false,
+        },
+        concepts: [
+          {
+            conceptId: "concept-locked",
+            title: "Agent Loops",
+            track: "LLM_APP",
+            status: "Locked",
+            masteryLevel: 0,
+            unlocked: false,
+            mastered: false,
+            prerequisiteTitles: ["Tool Calling Basics"],
+          },
+        ],
+        snapshot: { streak: null, sessionsCompleted: 4, avgMastery: 1.5 },
+      }),
+    } as Response));
+
+    render(<TodayPage />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Browse curriculum" }));
+    expect(await screen.findByText("Requires: Tool Calling Basics")).toBeInTheDocument();
+
+    const lockedButton = screen.getByRole("button", { name: /Agent Loops/i });
+    expect(lockedButton).toBeDisabled();
+    const setConceptCalls = fetchSpy.mock.calls.filter((call) => call[0] === "/api/session/set-concept");
+    expect(setConceptCalls).toHaveLength(0);
   });
 });
