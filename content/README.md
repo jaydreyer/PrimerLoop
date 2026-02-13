@@ -1,0 +1,3 @@
+- one JSON file per concept
+- schema is fixed
+- version increments on edits
