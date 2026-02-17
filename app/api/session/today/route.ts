@@ -146,8 +146,7 @@ export async function GET() {
 
   let session: TodaySessionPayload | null = null;
   if (data) {
-    const missingMetadata = !data.concept_id || !data.subject_id || !data.difficulty;
-    if (missingMetadata) {
+    if (!data.concept_id || !data.subject_id || !data.difficulty) {
       session = {
         sessionId: data.id,
         conceptId: data.concept_id,
@@ -158,11 +157,12 @@ export async function GET() {
         needsReset: true,
       };
     } else {
-      const concept = conceptById.get(data.concept_id);
-      const conceptStatus = statusByConceptId.get(data.concept_id);
+      const conceptId = data.concept_id;
+      const concept = conceptById.get(conceptId);
+      const conceptStatus = statusByConceptId.get(conceptId);
       session = {
         sessionId: data.id,
-        conceptId: data.concept_id,
+        conceptId,
         conceptName: concept?.title ?? null,
         track: concept?.track ?? null,
         status: conceptStatus?.status ?? null,

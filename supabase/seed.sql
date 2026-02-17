@@ -48,7 +48,7 @@ join (
 on conflict (slug) do nothing;
 
 -- Prerequisite graph
--- Rule: unlocked if ALL prereqs mastery_score >= 3
+-- Rule: unlocked if ALL prereqs reach mastery level >= 3
 
 insert into concept_prerequisites (concept_id, prerequisite_concept_id)
 select c.id, p.id

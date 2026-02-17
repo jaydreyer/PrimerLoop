@@ -44,7 +44,6 @@ export async function GET(_request: Request, { params }: RouteParams) {
     .from("user_notebook_entries")
     .select("content")
     .eq("user_id", user.id)
-    .eq("subject_id", concept.subject_id)
     .eq("concept_id", conceptId)
     .eq("version", version)
     .maybeSingle<{ content: unknown }>();
@@ -109,7 +108,6 @@ export async function GET(_request: Request, { params }: RouteParams) {
   const { error: upsertError } = await supabase.from("user_notebook_entries").upsert(
     {
       user_id: user.id,
-      subject_id: concept.subject_id,
       concept_id: concept.id,
       version,
       content: parsedNotebookEntry.data,

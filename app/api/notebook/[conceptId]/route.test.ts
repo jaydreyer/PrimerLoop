@@ -222,7 +222,6 @@ describe("GET /api/notebook/[conceptId]", () => {
     expect(upsertCalls).toContainEqual([
       expect.objectContaining({
         user_id: "user-1",
-        subject_id: "subject-1",
         concept_id: "concept-1",
         version: 1,
       }),

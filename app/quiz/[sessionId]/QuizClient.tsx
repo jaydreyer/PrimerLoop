@@ -90,6 +90,16 @@ export default function QuizClient({ sessionId, conceptTitle, quiz }: QuizClient
         throw new Error(body.error ?? "Unable to submit quiz");
       }
 
+      const completionResponse = await fetch("/api/session/complete", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ sessionId }),
+      });
+      if (!completionResponse.ok) {
+        // Keep results reachable even if completion finalize fails; avoids duplicate quiz submits.
+        console.error("Session completion failed", await completionResponse.text());
+      }
+
       const encoded = encodeURIComponent(
         JSON.stringify({
           attemptId: body.attemptId,

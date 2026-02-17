@@ -3,8 +3,6 @@ import {
   chooseUnlockedConceptForToday,
   deriveConceptStatuses,
   isUnlockedByPrerequisites,
-  MASTERED_MASTERY_THRESHOLD,
-  UNLOCK_MASTERY_THRESHOLD,
 } from "./sessionEngine";
 import type { Concept, UserConceptState, UserSettings } from "./types";
 
@@ -71,8 +69,8 @@ describe("chooseUnlockedConceptForToday", () => {
 
   it("unlocks once prerequisite mastery reaches threshold", () => {
     const concept = { id: "next", prerequisiteIds: ["base"], createdAt: "2026-01-02T00:00:00.000Z" };
-    const locked = isUnlockedByPrerequisites(concept, new Map([["base", UNLOCK_MASTERY_THRESHOLD - 0.01]]));
-    const unlocked = isUnlockedByPrerequisites(concept, new Map([["base", UNLOCK_MASTERY_THRESHOLD]]));
+    const locked = isUnlockedByPrerequisites(concept, new Map([["base", 0.74]]));
+    const unlocked = isUnlockedByPrerequisites(concept, new Map([["base", 0.75]]));
 
     expect(locked).toBe(false);
     expect(unlocked).toBe(true);
@@ -90,8 +88,8 @@ describe("deriveConceptStatuses", () => {
         { id: "mastered", title: "Mastered", prerequisiteIds: [], createdAt: "2026-01-04T00:00:00.000Z" },
       ],
       [
-        { conceptId: "review", masteryScore: 2, nextReviewAt: "2026-02-20T00:00:00.000Z" },
-        { conceptId: "mastered", masteryScore: MASTERED_MASTERY_THRESHOLD, nextReviewAt: null },
+        { conceptId: "review", masteryScore: 0.5, nextReviewAt: "2026-02-20T00:00:00.000Z" },
+        { conceptId: "mastered", masteryScore: 0.95, nextReviewAt: null },
       ],
       now,
     );

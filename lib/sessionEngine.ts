@@ -155,7 +155,7 @@ export function isUnlockedByPrerequisites(
   if (concept.prerequisiteIds.length === 0) return true;
   return concept.prerequisiteIds.every((prerequisiteId) => {
     const score = masteryByConceptId.get(prerequisiteId);
-    return typeof score === "number" && score >= UNLOCK_MASTERY_THRESHOLD;
+    return typeof score === "number" && masteryLevelFromScore(score) >= UNLOCK_MASTERY_THRESHOLD;
   });
 }
 
@@ -166,10 +166,18 @@ function clampMasteryLevel(value: number): number {
   return value;
 }
 
+function masteryLevelFromNormalizedScore(score: number): number {
+  if (score >= 0.95) return 4;
+  if (score >= 0.75) return 3;
+  if (score >= 0.5) return 2;
+  if (score >= 0.25) return 1;
+  return 0;
+}
+
 function masteryLevelFromScore(score: number): number {
-  // Backward compatible with legacy 0..1 scores while supporting 0..4 progression.
+  // Backward compatible with legacy 0..4 scores while supporting normalized 0..1 storage.
   if (score >= 0 && score <= 1) {
-    return clampMasteryLevel(Math.round(score * 4));
+    return masteryLevelFromNormalizedScore(score);
   }
   return clampMasteryLevel(Math.round(score));
 }
@@ -187,7 +195,8 @@ export function deriveConceptStatuses(
   return orderedConcepts.map((concept) => {
     const mastery = masteryByConceptId.get(concept.id);
     const masteryScore = mastery?.masteryScore ?? 0;
-    const mastered = masteryScore >= MASTERED_MASTERY_THRESHOLD;
+    const masteryLevel = masteryLevelFromScore(masteryScore);
+    const mastered = masteryLevel >= MASTERED_MASTERY_THRESHOLD;
     const unlocked = isUnlockedByPrerequisites(concept, masteryScoreByConceptId);
     const nextReviewAt = mastery?.nextReviewAt ?? null;
     const nextReviewMs = nextReviewAt ? new Date(nextReviewAt).getTime() : Number.NaN;
@@ -211,7 +220,7 @@ export function deriveConceptStatuses(
       unlocked,
       mastered,
       masteryScore,
-      masteryLevel: masteryLevelFromScore(masteryScore),
+      masteryLevel,
       nextReviewAt,
       prerequisiteIds: concept.prerequisiteIds,
     };
