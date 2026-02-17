@@ -47,7 +47,7 @@ function isRateLimited(request: NextRequest): boolean {
   return false;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith("/api/") && isRateLimited(request)) {
     // Dev-only in-memory limiter; production should use distributed storage.
     return applySecurityHeaders(

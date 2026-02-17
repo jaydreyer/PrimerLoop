@@ -2,19 +2,19 @@
 
 ## Next.js 16 middleware deprecation (`middleware.ts` -> `proxy.ts`)
 
-- Status: Open
+- Status: Closed
 - Priority: Medium
-- Owner: Unassigned
+- Owner: Codex
 - First observed: 2026-02-12
 
 ### Current behavior
 
-- The app uses root `middleware.ts` to:
+- The app uses root `proxy.ts` to:
   - refresh Supabase SSR auth cookies (`createServerClient(...); await supabase.auth.getUser()`),
   - apply security headers,
   - enforce a basic in-memory rate limit for `/api/*`.
-- On Next.js 16, this convention is deprecated in favor of `proxy.ts`/`export function proxy()`.
-- Current behavior still works, but emits deprecation guidance and should be migrated before removal in a future Next major.
+- Migrated to Next.js 16 `proxy.ts` + `export function proxy()`.
+- Deprecation warning is cleared while preserving prior runtime behavior.
 
 ### References
 
@@ -26,9 +26,8 @@
 
 ### Migration plan (placeholder)
 
-- [ ] Confirm target runtime behavior for auth refresh, security headers, and rate limiting under `proxy.ts`.
-- [ ] Run codemod (`middleware-to-proxy`) in a dedicated branch and review generated changes.
-- [ ] Rename file/function: `middleware.ts` -> `proxy.ts`, `middleware()` -> `proxy()`.
-- [ ] Verify Supabase SSR cookie synchronization still works end-to-end (login, callback, protected API).
-- [ ] Re-run API/auth tests and smoke test `/today`, `/api/session/today`, `/api/session/start`.
+- [x] Confirm target runtime behavior for auth refresh, security headers, and rate limiting under `proxy.ts`.
+- [x] Rename file/function: `middleware.ts` -> `proxy.ts`, `middleware()` -> `proxy()`.
+- [x] Verify Supabase SSR cookie synchronization still works end-to-end (login, callback, protected API).
+- [x] Re-run API/auth tests and smoke test `/today`, `/api/session/today`, `/api/session/start`.
 - [ ] Monitor for regressions in rate limiting and security headers after migration.
