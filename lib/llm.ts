@@ -1,6 +1,6 @@
 import "server-only";
 
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
 import type { Difficulty } from "./types";
@@ -177,6 +177,7 @@ type GenerateLessonInput = {
 
 type GenerateQuizInput = {
   conceptName: string;
+  conceptSlug?: string;
   difficulty: Difficulty;
   subjectName: string;
 };
@@ -192,6 +193,272 @@ type GenerateNotebookEntryInput = {
   lesson: LessonContent;
   quizResults?: unknown;
 };
+
+const CuratedLessonSchema = z.object({
+  why_it_matters: z.string().optional(),
+  core_idea: z.string().optional(),
+  mental_model: z.string().optional(),
+  deep_dive: z.string().optional(),
+  applied_example: z.string().optional(),
+  failure_modes: z.string().optional(),
+  design_implications: z.string().optional(),
+  interview_angle: z.string().optional(),
+  compression_summary: z.string().optional(),
+});
+
+const CuratedQuizQuestionSchema = z
+  .object({
+    id: z.string().min(1).optional(),
+    type: z.enum(["mcq", "short"]),
+    question: z.string().min(1),
+    options: z.array(z.string().min(1)).optional(),
+    correct_index: z.number().int().nonnegative().optional(),
+    explanation: z.string().optional(),
+    grading_notes: z.string().optional(),
+  })
+  .superRefine((question, ctx) => {
+    if (question.type === "mcq" && (!question.options || question.options.length < 2)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Curated MCQ questions require at least two options",
+        path: ["options"],
+      });
+    }
+    if (
+      question.type === "mcq" &&
+      typeof question.correct_index === "number" &&
+      question.options &&
+      question.correct_index >= question.options.length
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Curated correct_index is out of range",
+        path: ["correct_index"],
+      });
+    }
+  });
+
+const CuratedConceptSchema = z.object({
+  subject_slug: z.string().min(1),
+  concept_slug: z.string().min(1),
+  track: z.string().min(1),
+  difficulty: z.string().min(1),
+  version: z.number().int().positive(),
+  title: z.string().min(1),
+  prerequisites: z.array(z.string()).optional(),
+  lesson: CuratedLessonSchema,
+  quiz: z.array(CuratedQuizQuestionSchema).min(1),
+});
+
+type CuratedConcept = z.infer<typeof CuratedConceptSchema>;
+
+type CuratedContentIndex = {
+  bySlug: Map<string, CuratedConcept>;
+  byTitle: Map<string, CuratedConcept>;
+};
+
+const globalForCuratedContent = globalThis as unknown as {
+  __curatedContentIndexPromise?: Promise<CuratedContentIndex>;
+};
+
+function normalizeLookupKey(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function slugFromConceptName(name: string): string {
+  return normalizeLookupKey(name)
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function dedupeStrings(values: string[]): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const value of values) {
+    const normalized = normalizeLookupKey(value);
+    if (!normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    result.push(value);
+  }
+  return result;
+}
+
+function firstMeaningfulSentence(text: string): string {
+  const compact = text.replace(/\s+/g, " ").trim();
+  if (!compact) return "";
+  const match = compact.match(/(.+?[.!?])(?:\s|$)/);
+  return (match?.[1] ?? compact).trim();
+}
+
+function textBlockToBullets(text: string): string[] {
+  const lines = text
+    .split(/\r?\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => line.replace(/^[•*-]\s*/, "").replace(/^\d+[.)]\s*/, "").trim())
+    .filter(Boolean);
+  return lines.length > 0 ? lines : [text.trim()];
+}
+
+function lessonSectionFromField(
+  lesson: CuratedConcept["lesson"],
+  field: keyof CuratedConcept["lesson"],
+  heading: string,
+): LessonContent["sections"][number] | null {
+  const value = lesson[field];
+  if (typeof value !== "string" || !value.trim()) return null;
+  return {
+    heading,
+    bullets: textBlockToBullets(value),
+  };
+}
+
+function buildCuratedLessonContent(curated: CuratedConcept): LessonContent | null {
+  const sections = [
+    lessonSectionFromField(curated.lesson, "why_it_matters", "Why It Matters"),
+    lessonSectionFromField(curated.lesson, "core_idea", "Core Idea"),
+    lessonSectionFromField(curated.lesson, "mental_model", "Mental Model"),
+    lessonSectionFromField(curated.lesson, "deep_dive", "Deep Dive"),
+    lessonSectionFromField(curated.lesson, "applied_example", "Worked Example"),
+    lessonSectionFromField(curated.lesson, "failure_modes", "Failure Modes"),
+    lessonSectionFromField(curated.lesson, "design_implications", "Design Implications"),
+    lessonSectionFromField(curated.lesson, "interview_angle", "Interview Angle"),
+    lessonSectionFromField(curated.lesson, "compression_summary", "60-second recap"),
+  ].filter((section): section is LessonContent["sections"][number] => Boolean(section));
+
+  if (sections.length === 0) return null;
+
+  const keyTakeaways = dedupeStrings(
+    [
+      curated.lesson.compression_summary,
+      curated.lesson.core_idea,
+      curated.lesson.design_implications,
+    ]
+      .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+      .map((value) => firstMeaningfulSentence(value)),
+  ).slice(0, 4);
+
+  const lessonCandidate: LessonContent = {
+    title: curated.title,
+    sections,
+    key_takeaways: keyTakeaways.length > 0 ? keyTakeaways : ["Review the core idea and apply it with one concrete example."],
+  };
+
+  const validated = LessonContentSchema.safeParse(lessonCandidate);
+  return validated.success ? validated.data : null;
+}
+
+function buildCuratedQuizContent(curated: CuratedConcept): QuizContent | null {
+  const questions: QuizContent["questions"] = curated.quiz.map((question, index) => {
+    if (question.type === "mcq") {
+      const choices = question.options ?? [];
+      const correctIndex = question.correct_index;
+      return {
+        id: question.id ?? `q${index + 1}`,
+        type: "mcq",
+        prompt: question.question,
+        choices,
+        correctIndex,
+        answer:
+          typeof correctIndex === "number" && choices[correctIndex]
+            ? choices[correctIndex]
+            : undefined,
+      };
+    }
+
+    return {
+      id: question.id ?? `q${index + 1}`,
+      type: "short",
+      prompt: question.question,
+      rubric: question.grading_notes ?? "Assess conceptual correctness and clarity.",
+    };
+  });
+
+  const quizCandidate: QuizContent = {
+    title: `${curated.title} Quiz`,
+    questions,
+  };
+
+  const validated = QuizContentSchema.safeParse(quizCandidate);
+  return validated.success ? validated.data : null;
+}
+
+async function loadCuratedContentIndex(): Promise<CuratedContentIndex> {
+  const existing = globalForCuratedContent.__curatedContentIndexPromise;
+  if (existing) return existing;
+
+  const indexPromise = (async () => {
+    const bySlug = new Map<string, CuratedConcept>();
+    const byTitle = new Map<string, CuratedConcept>();
+    const contentRoot = path.join(process.cwd(), "content");
+    const dirs = ["foundations", "llm-app", "systems"];
+
+    for (const dir of dirs) {
+      const dirPath = path.join(contentRoot, dir);
+      let filenames: string[] = [];
+      try {
+        filenames = await readdir(dirPath);
+      } catch {
+        continue;
+      }
+
+      for (const filename of filenames) {
+        if (!filename.endsWith(".json")) continue;
+        const filePath = path.join(dirPath, filename);
+        let raw = "";
+        try {
+          raw = await readFile(filePath, "utf-8");
+        } catch {
+          continue;
+        }
+
+        let parsed: unknown;
+        try {
+          parsed = JSON.parse(raw);
+        } catch {
+          continue;
+        }
+
+        const validated = CuratedConceptSchema.safeParse(parsed);
+        if (!validated.success) continue;
+
+        const concept = validated.data;
+        const slugKey = normalizeLookupKey(concept.concept_slug);
+        const titleKey = normalizeLookupKey(concept.title);
+        if (slugKey && !bySlug.has(slugKey)) bySlug.set(slugKey, concept);
+        if (titleKey && !byTitle.has(titleKey)) byTitle.set(titleKey, concept);
+      }
+    }
+
+    return { bySlug, byTitle };
+  })();
+
+  globalForCuratedContent.__curatedContentIndexPromise = indexPromise;
+  return indexPromise;
+}
+
+async function getCuratedConceptContent(input: {
+  conceptSlug?: string;
+  conceptName: string;
+}): Promise<CuratedConcept | null> {
+  const index = await loadCuratedContentIndex();
+
+  const slugCandidates = [
+    input.conceptSlug,
+    slugFromConceptName(input.conceptName),
+  ]
+    .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+    .map((value) => normalizeLookupKey(value));
+
+  for (const slugKey of slugCandidates) {
+    const hit = index.bySlug.get(slugKey);
+    if (hit) return hit;
+  }
+
+  const titleHit = index.byTitle.get(normalizeLookupKey(input.conceptName));
+  return titleHit ?? null;
+}
 
 function fallbackLessonContent(input: GenerateLessonInput): LessonContent {
   const conceptSlug = input.conceptSlug?.trim().toLowerCase();
@@ -463,6 +730,17 @@ function normalizeLessonSections(lesson: LessonContent): LessonContent {
 }
 
 export async function generateLessonContent(input: GenerateLessonInput): Promise<LessonContent> {
+  const curatedConcept = await getCuratedConceptContent({
+    conceptSlug: input.conceptSlug,
+    conceptName: input.conceptName,
+  });
+  if (curatedConcept) {
+    const curatedLesson = buildCuratedLessonContent(curatedConcept);
+    if (curatedLesson) {
+      return curatedLesson;
+    }
+  }
+
   let llmApiKey: string;
   try {
     llmApiKey = requireLlmApiKey();
@@ -528,6 +806,17 @@ export async function generateLessonContent(input: GenerateLessonInput): Promise
 }
 
 export async function generateQuizContent(input: GenerateQuizInput): Promise<QuizContent> {
+  const curatedConcept = await getCuratedConceptContent({
+    conceptSlug: input.conceptSlug,
+    conceptName: input.conceptName,
+  });
+  if (curatedConcept) {
+    const curatedQuiz = buildCuratedQuizContent(curatedConcept);
+    if (curatedQuiz) {
+      return curatedQuiz;
+    }
+  }
+
   let llmApiKey: string;
   try {
     llmApiKey = requireLlmApiKey();
@@ -546,6 +835,7 @@ export async function generateQuizContent(input: GenerateQuizInput): Promise<Qui
     "Generate exactly 3 questions: conceptual mcq, applied scenario mcq, and one short answer.",
     `Tone: ${contentTone()} (${contentTone() === "interview" ? "Bias toward LLM app interview framing." : "Use neutral instructional framing."})`,
     `Concept: ${input.conceptName}`,
+    `ConceptSlug: ${input.conceptSlug ?? ""}`,
     `Difficulty: ${input.difficulty}`,
     `Subject: ${input.subjectName}`,
   ].join("\n");
