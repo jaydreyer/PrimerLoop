@@ -1,0 +1,101 @@
+{
+  "subject_slug": "systems",
+  "concept_slug": "training-vs-inference",
+  "track": "CORE_TECH",
+  "difficulty": "intermediate",
+  "version": 1,
+  "title": "Training vs Inference: When the Model Learns vs When It Predicts",
+  "prerequisites": [
+    "neural-networks",
+    "transformer-architecture-and-attention"
+  ],
+  "lesson": {
+    "why_it_matters": "Many people believe LLMs are constantly learning from conversations. They are not. Understanding the difference between training and inference is critical for system design and realistic expectations.",
+    "core_idea": "Training is when model weights are updated using massive datasets and gradient descent. Inference is when the trained model uses those fixed weights to generate predictions.",
+    "mental_model": "Training is like studying for years. Inference is like answering questions during an exam. During the exam, your brain does not change — it just uses what it already learned.",
+    "deep_dive": "Training phase:\n\n• Massive dataset (trillions of tokens)\n• Forward pass through network\n• Compute loss (difference between prediction and actual token)\n• Backpropagation adjusts weights\n• Requires enormous compute (GPUs/TPUs)\n\nInference phase:\n\n• Model weights are frozen\n• Input tokens processed\n• Forward pass only\n• No weight updates\n• Much cheaper than training\n\nKey implications:\n\n1) Models do not learn from conversations in real time.\n\n2) If you want permanent behavior change, you must fine-tune.\n\n3) Chat history works by sending previous messages back into the context window.\n\n4) Memory ≠ training.\n\nWhy training is expensive:\n• Billions of parameters\n• Trillions of tokens\n• Backpropagation across all layers\n\nWhy inference is still costly:\n• Large matrix multiplications\n• Attention scaling\n• Long context windows increase compute\n\nImportant distinction:\nTraining = modify weights\nInference = use weights",
+    "applied_example": "User corrects a model:\n\"That's wrong. The answer is X.\"\n\nDuring inference, the model does not update its weights.\nIt may respond differently within the conversation because context changed — but it has not permanently learned.",
+    "failure_modes": "1) Believing models learn from every chat.\n2) Confusing context memory with training.\n3) Underestimating training cost.\n4) Overestimating inference simplicity.",
+    "design_implications": "If you need:\n• Permanent tone change → fine-tune\n• Updated facts → RAG\n• Session memory → external database\n\nNever assume inference updates the model.",
+    "interview_angle": "Strong answer: “Training updates model weights via backpropagation. Inference uses frozen weights to generate predictions. LLMs do not learn from conversations unless fine-tuned.”",
+    "compression_summary": "Training changes model weights. Inference uses fixed weights to generate predictions."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "What happens during training?",
+      "options": [
+        "Token sampling",
+        "Weight updates via backpropagation",
+        "Embedding retrieval",
+        "Context truncation"
+      ],
+      "correct_index": 1,
+      "explanation": "Training modifies model parameters."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "Does an LLM learn from a conversation during inference?",
+      "options": [
+        "Yes",
+        "Only at temperature zero",
+        "No",
+        "Only with embeddings"
+      ],
+      "correct_index": 2,
+      "explanation": "Inference does not modify weights."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "Why is training more expensive than inference?",
+      "options": [
+        "Longer prompts",
+        "Backpropagation across massive datasets",
+        "Tokenization cost",
+        "Embedding storage"
+      ],
+      "correct_index": 1,
+      "explanation": "Training requires gradient computation and weight updates."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "Explain why chat history does not equal learning.",
+      "grading_notes": "Look for: context replay; weights unchanged; temporary state."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "Describe the difference between training compute and inference compute.",
+      "grading_notes": "Look for: backpropagation; frozen weights; scale differences."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "Does inference update weights?",
+      "back": "No."
+    },
+    {
+      "front": "What is backpropagation?",
+      "back": "The process of adjusting model weights based on prediction error."
+    },
+    {
+      "front": "Why is training so expensive?",
+      "back": "It requires massive data and repeated weight updates."
+    },
+    {
+      "front": "What changes permanently?",
+      "back": "Only training or fine-tuning changes weights."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "Explain training vs inference to a non-technical audience.",
+      "Why don’t models learn from conversations?",
+      "When would you need fine-tuning instead of context memory?"
+    ]
+  }
+}

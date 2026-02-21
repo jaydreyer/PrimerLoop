@@ -1,0 +1,101 @@
+{
+  "subject_slug": "systems",
+  "concept_slug": "mixture-of-experts",
+  "track": "CORE_TECH",
+  "difficulty": "advanced",
+  "version": 1,
+  "title": "Mixture of Experts (MoE): Scaling Without Full Cost",
+  "prerequisites": [
+    "scaling-laws-and-emergence",
+    "model-efficiency-and-cost-engineering"
+  ],
+  "lesson": {
+    "why_it_matters": "Modern frontier models use Mixture of Experts (MoE) to scale to massive parameter counts without paying full inference cost on every token.",
+    "core_idea": "Mixture of Experts activates only a subset of model parameters for each token instead of the entire network.",
+    "mental_model": "Think of a company with many specialists. Instead of every expert responding to every question, a router decides which experts are relevant for the current task.",
+    "deep_dive": "Traditional dense transformer:\nEvery token flows through every layer.\nAll parameters are active.\n\nMoE transformer:\n\n1) Router layer\n   Determines which expert networks to activate.\n\n2) Expert layers\n   Separate feedforward networks specialize in different patterns.\n\n3) Sparse activation\n   Only a few experts are activated per token.\n\nResult:\n• Huge parameter count\n• Lower inference cost per token\n\nKey benefits:\n- Scaling to trillions of parameters\n- Increased specialization\n- Improved capacity without linear cost growth\n\nKey challenges:\n- Load balancing across experts\n- Training instability\n- Routing errors\n- Increased system complexity\n\nWhy this matters:\nMoE allows large capability jumps without fully proportional compute increase.\n\nHowever:\nIt adds architectural complexity and infrastructure demands.",
+    "applied_example": "User asks about legal contracts.\nRouter activates experts specialized in:\n• Legal text\n• Long document reasoning\n\nUser asks about math.\nRouter activates math-specialized experts.\n\nDifferent parts of model specialize.",
+    "failure_modes": "1) Poor routing leads to expert overload.\n2) Imbalanced expert training.\n3) Increased infrastructure complexity.\n4) Harder debugging.",
+    "design_implications": "MoE models:\n- Improve scaling efficiency.\n- Reduce inference cost relative to dense models of similar parameter count.\n- Require careful load balancing.\n\nThey are powerful but operationally complex.",
+    "interview_angle": "Strong answer: “Mixture of Experts activates only subsets of parameters per token, allowing models to scale in size without linear inference cost growth.”",
+    "compression_summary": "MoE models scale capacity by activating only relevant experts per token."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "What distinguishes MoE from dense transformers?",
+      "options": [
+        "More tokens",
+        "Sparse expert activation",
+        "Longer context windows",
+        "Higher temperature"
+      ],
+      "correct_index": 1,
+      "explanation": "MoE activates only selected expert networks."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "Why is MoE efficient?",
+      "options": [
+        "It reduces token count",
+        "It activates fewer parameters per token",
+        "It compresses embeddings",
+        "It reduces training data"
+      ],
+      "correct_index": 1,
+      "explanation": "Sparse activation lowers inference compute cost."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "What is a key challenge of MoE?",
+      "options": [
+        "Tokenization errors",
+        "Load balancing experts",
+        "Embedding dimension",
+        "Sampling instability"
+      ],
+      "correct_index": 1,
+      "explanation": "Experts must be evenly utilized."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "Explain how MoE enables scaling without proportional cost increase.",
+      "grading_notes": "Look for: sparse activation; subset of parameters per token."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "Describe the tradeoffs introduced by MoE architectures.",
+      "grading_notes": "Look for: complexity; routing; load balancing; debugging."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "Core difference between dense and MoE models?",
+      "back": "MoE activates only a subset of experts per token."
+    },
+    {
+      "front": "Why does MoE reduce inference cost?",
+      "back": "Not all parameters are active for every token."
+    },
+    {
+      "front": "Main challenge in MoE?",
+      "back": "Load balancing and routing complexity."
+    },
+    {
+      "front": "Does MoE reduce training complexity?",
+      "back": "No, it often increases system complexity."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "Explain MoE to a non-technical stakeholder.",
+      "Why does MoE help scaling?",
+      "What operational risks does MoE introduce?"
+    ]
+  }
+}

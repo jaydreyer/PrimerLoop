@@ -1,0 +1,98 @@
+{
+  "subject_slug": "foundations",
+  "concept_slug": "neural-networks",
+  "track": "FOUNDATIONS",
+  "difficulty": "beginner",
+  "version": 1,
+  "title": "Neural Networks: Learning with Layers of Numbers",
+  "prerequisites": ["what-is-machine-learning"],
+  "lesson": {
+    "why_it_matters": "Neural networks power most modern AI systems, including large language models. If you understand neural networks at a high level, you understand the foundation of how systems like ChatGPT, image generators, and speech recognition models actually work.",
+    "core_idea": "A neural network is a type of machine learning model made of layers of connected units (often called neurons) that transform numbers into other numbers. It learns by adjusting internal weights so that its outputs better match the correct answers during training.",
+    "mental_model": "Think of a neural network as a layered calculator. Each layer takes numbers in, multiplies them by weights (importance values), adds them up, and passes them through a function that reshapes them. Layer by layer, the network transforms raw input into a prediction.",
+    "deep_dive": "A neural network is composed of layers:\n\n1) Input layer – receives numerical representations of data (for text, images, etc.).\n2) Hidden layers – transform the data through weighted connections and mathematical functions.\n3) Output layer – produces the final prediction.\n\nEach connection has a weight (a number). During training, the model adjusts these weights to reduce error. This adjustment is typically done using gradient descent and backpropagation, which calculate how much each weight contributed to the error.\n\nImportant insight: Neural networks do not store rules. They store learned numerical patterns in the form of weight values.",
+    "applied_example": "Example 1 (image recognition): An image is converted into pixel values (numbers). The network processes those numbers through many layers until the final layer outputs probabilities like: Dog 0.92, Cat 0.06, Other 0.02.\n\nExample 2 (language models): Words are converted into numbers (tokens → embeddings). The network processes those numbers through many layers and outputs probabilities for the next token.",
+    "failure_modes": "1) Overfitting: The network memorizes training examples.\n2) Vanishing/exploding gradients: Training becomes unstable in deep networks.\n3) Poor generalization: Model performs poorly on unseen data.\n4) Data leakage: Test data accidentally influences training.",
+    "design_implications": "Neural networks scale with:\n- More data\n- More parameters (weights)\n- More compute power\n\nLarge neural networks (like LLMs) can have billions of parameters. But bigger models also require more compute, cost more to train, and can be harder to control.\n\nIn production systems, engineers must balance size, cost, and latency.",
+    "interview_angle": "Interview-ready framing: “A neural network is a layered function approximator that learns by adjusting weights to minimize prediction error. It transforms input data through multiple nonlinear layers to produce an output.”\n\nIf asked what it ‘stores’: “It stores learned statistical patterns in its weights.”",
+    "compression_summary": "A neural network is a layered mathematical system that learns patterns by adjusting numerical weights. It transforms input numbers into output predictions through stacked transformations."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "What is the main component that neural networks adjust during training?",
+      "options": [
+        "Hard-coded rules",
+        "Database entries",
+        "Weights",
+        "User inputs"
+      ],
+      "correct_index": 2,
+      "explanation": "Neural networks adjust numerical weights during training to reduce prediction error."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "What does a neural network ultimately operate on?",
+      "options": [
+        "Words and images directly",
+        "Numbers",
+        "Internet search results",
+        "Pre-written rules"
+      ],
+      "correct_index": 1,
+      "explanation": "All inputs (text, images, audio) are converted into numerical representations before being processed."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "What is overfitting in neural networks?",
+      "options": [
+        "When the model is too small",
+        "When the model memorizes training data and fails to generalize",
+        "When the model updates too slowly",
+        "When there are too many users"
+      ],
+      "correct_index": 1,
+      "explanation": "Overfitting occurs when a model performs well on training data but poorly on new, unseen data."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "Explain in 2–3 sentences how a neural network learns.",
+      "grading_notes": "Look for: weights; error reduction; training; gradient descent/backpropagation; adjustment of numerical parameters."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "Why are neural networks described as ‘function approximators’?",
+      "grading_notes": "Look for: mapping inputs to outputs; learning patterns; approximating unknown functions from data."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "What does a neural network adjust during training?",
+      "back": "Numerical weights that determine how inputs influence outputs."
+    },
+    {
+      "front": "What form does data take inside a neural network?",
+      "back": "Everything is represented as numbers."
+    },
+    {
+      "front": "What is backpropagation?",
+      "back": "A method for calculating how each weight contributed to error so it can be adjusted."
+    },
+    {
+      "front": "What does a neural network store?",
+      "back": "Learned statistical patterns encoded in weight values."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "Draw or describe the three main parts of a neural network (input, hidden, output).",
+      "Explain why neural networks require large amounts of data.",
+      "Describe one limitation of neural networks in real-world systems."
+    ]
+  }
+}

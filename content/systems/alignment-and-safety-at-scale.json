@@ -1,0 +1,101 @@
+{
+  "subject_slug": "systems",
+  "concept_slug": "alignment-and-safety-at-scale",
+  "track": "CORE_TECH",
+  "difficulty": "advanced",
+  "version": 1,
+  "title": "Alignment & Safety at Scale: Keeping Models Safe as They Grow",
+  "prerequisites": [
+    "fine-tuning-and-alignment",
+    "scaling-laws-and-emergence"
+  ],
+  "lesson": {
+    "why_it_matters": "As models grow more capable, unintended behaviors can scale as well. Alignment ensures that powerful models remain helpful, safe, and aligned with human intent.",
+    "core_idea": "Alignment refers to ensuring that AI systems behave according to human values and intended objectives, especially as capability increases.",
+    "mental_model": "Think of scaling intelligence like scaling power. The more powerful the system, the more important guardrails become.",
+    "deep_dive": "Key alignment mechanisms:\n\n• Reinforcement Learning from Human Feedback (RLHF)\n• Constitutional AI\n• Supervised fine-tuning\n• Red-teaming\n\nAlignment challenges at scale:\n\n1) Emergent behavior\n   New capabilities may produce unforeseen risks.\n\n2) Distribution shift\n   Real-world inputs differ from training data.\n\n3) Deceptive alignment\n   Model appears aligned during training but fails in novel scenarios.\n\n4) Capability overhang\n   Sudden capability jump outpaces safety measures.\n\nSafety layers in production:\n\n• System prompts\n• Policy filters\n• Output classifiers\n• Monitoring systems\n• Human review loops\n\nImportant distinction:\nAlignment is not just about refusing harmful content.\nIt is about shaping general behavior and incentives.",
+    "applied_example": "A model trained to be helpful might generate instructions for harmful behavior if not aligned properly.\n\nAlignment training reduces this risk through:\n• Preference modeling\n• Refusal training\n• Policy enforcement",
+    "failure_modes": "1) Assuming scale automatically improves safety.\n2) Over-reliance on refusal patterns.\n3) Ignoring long-tail edge cases.\n4) No monitoring for drift.",
+    "design_implications": "As systems scale:\n• Monitoring becomes critical.\n• Evaluation must include adversarial testing.\n• Alignment must be continuous, not one-time.\n\nAlignment is an ongoing systems problem.",
+    "interview_angle": "Strong answer: “Alignment ensures that powerful models behave according to human intent. As capability scales, safety must scale alongside it.”",
+    "compression_summary": "Alignment keeps powerful models safe and aligned with human goals as they scale."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "What is alignment?",
+      "options": [
+        "Token compression",
+        "Ensuring model behavior matches human intent",
+        "Increasing context length",
+        "Embedding optimization"
+      ],
+      "correct_index": 1,
+      "explanation": "Alignment ensures intended behavior."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "Why does scaling increase safety challenges?",
+      "options": [
+        "Models use more tokens",
+        "New capabilities may emerge unpredictably",
+        "Embeddings change",
+        "Attention weakens"
+      ],
+      "correct_index": 1,
+      "explanation": "Emergent capabilities introduce new risks."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "What is RLHF?",
+      "options": [
+        "A retrieval method",
+        "A training technique using human feedback",
+        "A token filter",
+        "A compression method"
+      ],
+      "correct_index": 1,
+      "explanation": "RLHF incorporates human preference signals."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "Explain why alignment must scale alongside capability.",
+      "grading_notes": "Look for: power increases risk; emergent behavior; monitoring necessity."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "Describe the difference between safety filtering and alignment.",
+      "grading_notes": "Look for: filtering is reactive; alignment shapes behavior systemically."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "What is alignment?",
+      "back": "Ensuring AI behavior matches human intent."
+    },
+    {
+      "front": "Does scaling automatically improve safety?",
+      "back": "No."
+    },
+    {
+      "front": "Why is monitoring necessary?",
+      "back": "Behavior can drift as capability increases."
+    },
+    {
+      "front": "Alignment is a one-time process?",
+      "back": "No. It is continuous."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "Why does scaling increase alignment risk?",
+      "Describe how RLHF shapes behavior.",
+      "Explain the difference between safety and alignment."
+    ]
+  }
+}

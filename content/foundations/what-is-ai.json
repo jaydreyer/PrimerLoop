@@ -1,0 +1,98 @@
+{
+  "subject_slug": "foundations",
+  "concept_slug": "what-is-ai",
+  "track": "FOUNDATIONS",
+  "difficulty": "beginner",
+  "version": 1,
+  "title": "What Is AI? Pattern Learning and Prediction",
+  "prerequisites": [],
+  "lesson": {
+    "why_it_matters": "Most people treat AI like a smart person or a search engine. That misunderstanding causes bad prompts, misplaced trust, and confusion when AI is confidently wrong. If you learn one thing first, it should be this: modern AI is a prediction system trained on patterns in data—not a mind that “understands” the world.",
+    "core_idea": "Artificial Intelligence (AI) is software that learns patterns from data and uses those patterns to make predictions or decisions. In practice, many AI systems—especially modern “generative AI”—take an input and predict what output is most likely to follow, based on what they learned during training.",
+    "mental_model": "Think of AI as extremely advanced autocomplete. Autocomplete looks at what you typed and guesses the next word. AI looks at patterns it learned from huge datasets and guesses the next output (a word, an image pixel pattern, a category label, etc.). It can feel like reasoning, but it’s still prediction.",
+    "deep_dive": "AI is an umbrella term. Machine Learning (ML) is the most common way we build AI today: instead of writing rules by hand, we train a model on examples. During training, the system adjusts internal parameters (numbers) so its predictions match the examples better and better. After training, the model uses those learned parameters to produce outputs for new inputs.\n\nImportant nuance: AI can produce answers that sound thoughtful because it learned the statistical shape of human writing. But it does not automatically know what is true. It is optimized to produce likely outputs, not guaranteed correct ones.",
+    "applied_example": "Example 1 (classification): You show a system many labeled photos: (photo → “dog”), (photo → “cat”). Over time it learns patterns that correlate with those labels. When it sees a new photo, it predicts the label.\n\nExample 2 (text generation): You type: “The capital of France is …” The system predicts the most likely next token. “Paris” has very high probability because that pattern appears frequently in training data.",
+    "failure_modes": "1) Confident wrong answers (hallucinations): If a pattern looks plausible, AI may output it even when it’s false.\n2) Bias: If training data contains biased patterns, the model can reproduce them.\n3) Out-of-distribution failure: If the input is unlike anything it saw in training, predictions can degrade quickly.\n4) Over-trust: Humans assume a fluent answer is a correct answer.",
+    "design_implications": "Because AI is prediction-based, good systems:\n- verify critical outputs (citations, calculations, external checks)\n- constrain behavior (tools, policies, guardrails)\n- separate “generate” from “decide” (AI suggests; humans or rules decide)\n- measure quality (tests, evaluation sets)\n\nFor personal use: treat AI like a very fast draft generator, not a fact oracle.",
+    "interview_angle": "Interview-ready framing: “AI systems learn statistical patterns from data and use those learned representations to make predictions or decisions. Modern generative models produce outputs by predicting likely continuations conditioned on an input context.”\n\nIf pressed on ‘does it reason?’: “It can display emergent reasoning-like behavior, but the underlying mechanism is still probabilistic prediction learned from data.”",
+    "compression_summary": "AI is not a brain and not a database. It’s software trained on data to learn patterns and produce predictions. It can sound intelligent, but it can also be confidently wrong—because it’s optimized for likely output, not guaranteed truth."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "Which statement best describes modern AI systems like ChatGPT?",
+      "options": [
+        "They search a database of stored answers and return the best match.",
+        "They understand language like humans and reason from first principles.",
+        "They learn patterns from data and generate outputs by predicting likely continuations.",
+        "They are rule-based expert systems written by engineers."
+      ],
+      "correct_index": 2,
+      "explanation": "LLMs are trained on large datasets and generate output by predicting likely next tokens based on learned patterns—not by retrieving stored answers or following hand-written rules."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "Why can AI produce a fluent answer that is still wrong?",
+      "options": [
+        "Because AI is designed to prioritize truth over fluency.",
+        "Because AI is optimized to produce likely-looking output, not guaranteed correct output.",
+        "Because AI always refuses to answer uncertain questions.",
+        "Because AI only uses information from the current chat session."
+      ],
+      "correct_index": 1,
+      "explanation": "A model’s objective is to produce likely text given context; fluency is not the same as factual correctness."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "Which is the best mental model for AI at a beginner level?",
+      "options": [
+        "A mind that thinks like a person",
+        "A superpowered autocomplete trained on patterns in data",
+        "A perfect encyclopedia",
+        "A calculator that always returns exact answers"
+      ],
+      "correct_index": 1,
+      "explanation": "Autocomplete is a useful intuition: AI predicts what comes next based on patterns learned from data."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "In 2–3 sentences, explain why an AI model can be confident and wrong.",
+      "grading_notes": "Look for: prediction vs truth; trained on patterns; not a fact database; plausible continuation; mention hallucination/fluency vs correctness."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "Give one example of an AI system that is not a chatbot, and describe what it predicts.",
+      "grading_notes": "Look for: classification/recommendation/fraud detection; input→predicted label/action; clear mapping."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "What is AI (plain English)?",
+      "back": "Software that learns patterns from data and uses them to make predictions or decisions."
+    },
+    {
+      "front": "What is the key difference between fluent output and true output?",
+      "back": "Fluent output is statistically likely text; true output requires verification against reality or sources."
+    },
+    {
+      "front": "Best beginner mental model for AI?",
+      "back": "Superpowered autocomplete: it predicts what comes next based on patterns learned from data."
+    },
+    {
+      "front": "Why do AI hallucinations happen?",
+      "back": "Because the model is optimized to generate likely-looking continuations, not guaranteed correct facts."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "Write a one-paragraph summary of what AI is, using the phrase: 'patterns in data' and 'prediction'.",
+      "List 3 common misconceptions people have about AI (e.g., 'it understands', 'it searches the internet') and correct each one in one sentence.",
+      "Write one practical rule for using AI safely in real life (e.g., verification step) and explain why it matters."
+    ]
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "subject_slug": "llm-app",
+  "concept_slug": "prompt-engineering",
+  "track": "LLM_APP",
+  "difficulty": "beginner",
+  "version": 1,
+  "title": "Prompt Engineering: Designing Inputs That Produce Better Outputs",
+  "prerequisites": ["rag"],
+  "lesson": {
+    "why_it_matters": "LLMs predict the next token based on context. The quality, structure, and clarity of the prompt directly determine output quality. Poor prompts produce vague or incorrect responses. Strong prompts guide the model toward structured, reliable answers.",
+    "core_idea": "Prompt engineering is the practice of designing inputs that constrain and guide the model’s behavior. Because LLMs are probabilistic, clear structure and constraints dramatically improve output reliability.",
+    "mental_model": "Think of the model as an extremely capable but literal intern. If your instructions are vague, you’ll get vague work. If you provide structure, constraints, and examples, you’ll get structured results.",
+    "deep_dive": "Core techniques:\n\n1) Role assignment\n   Example: \"You are a senior backend engineer.\"\n\n2) Clear task specification\n   \"Summarize this in 3 bullet points.\"\n\n3) Output format constraints\n   \"Respond in valid JSON.\"\n\n4) Few-shot examples\n   Provide examples of correct output.\n\n5) Chain-of-thought encouragement\n   \"Think step by step.\"\n\nImportant: Prompts reduce randomness and narrow the probability space.",
+    "applied_example": "Weak prompt:\n\"Explain RAG.\"\n\nImproved prompt:\n\"You are an AI systems architect. Explain Retrieval-Augmented Generation in 5 bullet points. Include one failure mode and one real-world example.\"\n\nThe second prompt produces clearer, more structured output.",
+    "failure_modes": "1) Overly vague instructions.\n2) Not specifying output format.\n3) Forgetting context constraints.\n4) Prompt injection risks when using user input directly.\n5) Assuming the model \"understands\" unstated goals.",
+    "design_implications": "Best practices:\n- Be explicit about role and task.\n- Define output structure.\n- Limit unnecessary verbosity.\n- Use system prompts for global behavior.\n- Combine with RAG for factual grounding.\n\nPrompt engineering is foundational for production reliability.",
+    "interview_angle": "Interview-ready framing: “Prompt engineering constrains the model’s probability distribution by structuring context and specifying output requirements.”\n\nIf asked about limitations: “Prompt engineering improves consistency but cannot guarantee correctness.”",
+    "compression_summary": "Prompt engineering is the structured design of model inputs to improve reliability, structure, and correctness of outputs."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "What is the primary goal of prompt engineering?",
+      "options": [
+        "To retrain the model",
+        "To reduce model size",
+        "To guide and constrain model output",
+        "To extend context windows"
+      ],
+      "correct_index": 2,
+      "explanation": "Prompt engineering structures context to guide output quality."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "Which technique helps ensure structured output?",
+      "options": [
+        "Increasing temperature",
+        "Providing output format instructions",
+        "Reducing tokens",
+        "Disabling system prompts"
+      ],
+      "correct_index": 1,
+      "explanation": "Explicit output format instructions improve reliability."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "Why use few-shot examples?",
+      "options": [
+        "To reduce compute cost",
+        "To show the model what correct output looks like",
+        "To increase randomness",
+        "To retrain embeddings"
+      ],
+      "correct_index": 1,
+      "explanation": "Few-shot examples demonstrate desired output patterns."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "Explain why vague prompts produce inconsistent outputs.",
+      "grading_notes": "Look for: probabilistic nature; lack of constraints; broad probability space."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "Describe how you would structure a prompt for consistent JSON output.",
+      "grading_notes": "Look for: role assignment, explicit format instructions, example output."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "What does prompt engineering control?",
+      "back": "It constrains and guides the model’s output behavior."
+    },
+    {
+      "front": "Why use few-shot examples?",
+      "back": "They demonstrate the desired output structure."
+    },
+    {
+      "front": "Does prompt engineering guarantee correctness?",
+      "back": "No. It improves consistency but does not eliminate errors."
+    },
+    {
+      "front": "Why specify output format?",
+      "back": "To reduce ambiguity and improve reliability."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "Rewrite a vague prompt into a structured prompt.",
+      "Design a JSON output prompt for a quiz generator.",
+      "Explain why prompt engineering cannot fully eliminate hallucinations."
+    ]
+  }
+}

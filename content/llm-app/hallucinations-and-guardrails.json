@@ -1,0 +1,98 @@
+{
+  "subject_slug": "llm-app",
+  "concept_slug": "hallucinations-and-guardrails",
+  "track": "LLM_APP",
+  "difficulty": "intermediate",
+  "version": 1,
+  "title": "Hallucinations & Guardrails: Managing LLM Failure Modes",
+  "prerequisites": ["prompt-engineering"],
+  "lesson": {
+    "why_it_matters": "LLMs do not know when they are wrong. They generate plausible text based on probability patterns. Without safeguards, they can confidently produce incorrect or fabricated information. In production systems, unmanaged hallucinations can cause real harm.",
+    "core_idea": "A hallucination occurs when a model generates false or fabricated information that appears coherent and confident. This happens because the model optimizes for plausible next tokens, not truth.",
+    "mental_model": "Think of the model as a brilliant improviser. If it doesn’t know something, it will still improvise something that sounds correct. It does not have built-in truth verification.",
+    "deep_dive": "Why hallucinations happen:\n\n1) Probabilistic generation\n   The model predicts likely tokens — not factual truth.\n\n2) Missing context\n   If required information isn’t in context, it guesses.\n\n3) Ambiguous prompts\n   Vague instructions widen the probability space.\n\n4) Training data gaps\n   The model cannot access real-time knowledge unless provided.\n\nCommon hallucination patterns:\n- Fabricated citations\n- Incorrect statistics\n- Confident but incorrect reasoning\n- Made-up APIs or parameters\n\nGuardrail strategies:\n\n1) Retrieval-Augmented Generation (RAG)\n   Provide factual context from trusted sources.\n\n2) Structured output validation\n   Validate JSON schema or enforce strict formats.\n\n3) Tool use and verification\n   Use external systems (calculators, databases) for factual operations.\n\n4) Confidence scoring\n   Ask the model to rate confidence.\n\n5) Refusal patterns\n   Instruct model to say “I don’t know” when unsure.\n\n6) Post-processing filters\n   Detect policy violations or unsafe content.\n\nKey principle:\nLLMs cannot self-verify truth reliably. Verification must be external.",
+    "applied_example": "Without guardrails:\n\"List 5 academic papers on RAG published in 2024.\"\nThe model may fabricate citations.\n\nWith guardrails:\nUse RAG to pull real citations from a trusted database, then instruct the model to summarize them.\n\nNow the model is grounded in real data.",
+    "failure_modes": "1) Over-trusting model output.\n2) Assuming confidence equals correctness.\n3) Not validating structured output.\n4) Letting user input override system instructions (prompt injection).",
+    "design_implications": "Production LLM systems must:\n- Ground answers with retrieval when factual accuracy matters.\n- Validate structured outputs.\n- Log failures and hallucination events.\n- Design safe fallback behaviors.\n\nNever deploy an unguarded LLM for critical workflows.",
+    "interview_angle": "Strong answer: “Hallucinations occur because LLMs optimize for probability, not truth. Production systems mitigate this using RAG, tool use, validation layers, and refusal strategies.”",
+    "compression_summary": "Hallucinations are confident but incorrect outputs. Guardrails mitigate them through retrieval, validation, and external verification."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "Why do hallucinations occur?",
+      "options": [
+        "Because the model is malicious",
+        "Because the model predicts probable tokens rather than verified truth",
+        "Because embeddings fail",
+        "Because context windows are too large"
+      ],
+      "correct_index": 1,
+      "explanation": "LLMs optimize for probable text, not factual truth."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "Which strategy most directly reduces factual hallucinations?",
+      "options": [
+        "Increasing temperature",
+        "Reducing tokens",
+        "Using Retrieval-Augmented Generation",
+        "Removing system prompts"
+      ],
+      "correct_index": 2,
+      "explanation": "RAG grounds answers in real data."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "Why is structured output validation important?",
+      "options": [
+        "It retrains the model",
+        "It enforces format and reduces malformed responses",
+        "It increases creativity",
+        "It expands the context window"
+      ],
+      "correct_index": 1,
+      "explanation": "Validation ensures output matches required schema."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "Explain why confidence does not equal correctness in LLMs.",
+      "grading_notes": "Look for: probabilistic output; no truth verification; learned fluency patterns."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "Describe three guardrail techniques used in production systems.",
+      "grading_notes": "Look for: RAG, validation, tool use, refusal strategies."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "What is a hallucination?",
+      "back": "A confident but incorrect or fabricated model output."
+    },
+    {
+      "front": "Why can’t LLMs self-verify truth?",
+      "back": "They predict probable tokens rather than checking facts."
+    },
+    {
+      "front": "Most effective guardrail for factual tasks?",
+      "back": "Retrieval-Augmented Generation (RAG)."
+    },
+    {
+      "front": "Does lowering temperature eliminate hallucinations?",
+      "back": "No. It may reduce randomness but does not guarantee correctness."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "List 3 ways hallucinations could cause real-world harm.",
+      "Design a guardrail system for a medical Q&A chatbot.",
+      "Explain why hallucination mitigation must be external to the model."
+    ]
+  }
+}

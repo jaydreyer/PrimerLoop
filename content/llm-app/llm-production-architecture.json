@@ -1,0 +1,103 @@
+{
+  "subject_slug": "llm-app",
+  "concept_slug": "llm-production-architecture",
+  "track": "LLM_APP",
+  "difficulty": "advanced",
+  "version": 1,
+  "title": "LLM Production Architecture: Designing Real Systems",
+  "prerequisites": [
+    "retrieval-augmented-generation",
+    "hallucinations-and-guardrails",
+    "prompt-injection-and-security",
+    "llm-evaluation-and-metrics"
+  ],
+  "lesson": {
+    "why_it_matters": "Building a demo is easy. Building a reliable, secure, scalable LLM system is difficult. Production architecture determines performance, safety, cost, and long-term maintainability.",
+    "core_idea": "A production LLM system is not just a model call. It is a multi-layer architecture involving retrieval, validation, orchestration, monitoring, and infrastructure controls.",
+    "mental_model": "Think of the LLM as just one component in a larger pipeline. The real intelligence of the system comes from how components interact around it.",
+    "deep_dive": "Core components of a production LLM system:\n\n1) User Interface Layer\n   - Web/mobile frontend\n   - Input validation\n   - Session management\n\n2) Orchestration Layer\n   - Prompt assembly\n   - Retrieval calls\n   - Tool invocation\n   - Output formatting\n\n3) Retrieval Layer (optional but common)\n   - Vector database\n   - Embedding model\n   - Document store\n\n4) LLM Inference Layer\n   - API call to hosted model\n   - Model selection\n   - Temperature / parameter configuration\n\n5) Validation & Guardrail Layer\n   - JSON schema validation\n   - Policy checks\n   - Hallucination detection\n   - Refusal enforcement\n\n6) Monitoring & Logging\n   - Prompt logging\n   - Failure tracking\n   - Latency metrics\n   - Token usage tracking\n\n7) Infrastructure Layer\n   - Caching\n   - Rate limiting\n   - Authentication\n   - Secrets management\n\nKey insight:\nThe LLM should not directly access databases, secrets, or internal APIs without control layers.\n\nCost considerations:\n- Token usage optimization\n- Caching repeated responses\n- Context truncation\n\nLatency considerations:\n- Streaming responses\n- Parallel retrieval\n- Model size selection\n\nScaling considerations:\n- Queueing requests\n- Load balancing\n- Fallback models\n\nReliability considerations:\n- Retry logic\n- Timeouts\n- Graceful degradation",
+    "applied_example": "A RAG-based internal knowledge bot:\n\nUser → API → Orchestrator\n→ Retrieve documents from vector DB\n→ Construct grounded prompt\n→ Call LLM\n→ Validate output\n→ Return structured response\n→ Log interaction\n\nEach layer enforces safety and performance constraints.",
+    "failure_modes": "1) Single giant prompt with secrets embedded.\n2) No caching → high token cost.\n3) No output validation → malformed JSON crashes system.\n4) No monitoring → silent hallucination failures.\n5) Tight coupling between model and business logic.",
+    "design_implications": "A production-ready system should:\n- Separate concerns across layers.\n- Treat the model as an unreliable probabilistic component.\n- Implement validation, monitoring, and observability.\n- Track cost and latency metrics.\n\nProduction LLM design is systems engineering, not just prompt engineering.",
+    "interview_angle": "Strong answer: “An LLM in production sits inside a layered architecture including orchestration, retrieval, validation, monitoring, and infrastructure controls. The model is only one part of the system.”",
+    "compression_summary": "LLM production systems require layered architecture around the model to ensure safety, cost control, and reliability."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "What is the biggest misconception about LLM production systems?",
+      "options": [
+        "That embeddings are required",
+        "That it is just a model API call",
+        "That context windows are fixed",
+        "That tokens are expensive"
+      ],
+      "correct_index": 1,
+      "explanation": "Production systems require multiple architectural layers beyond the model call."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "Why should secrets not be embedded directly in prompts?",
+      "options": [
+        "Because tokens cost money",
+        "Because prompts can leak or be manipulated",
+        "Because models reject secrets",
+        "Because embeddings break"
+      ],
+      "correct_index": 1,
+      "explanation": "Embedding secrets in prompts risks exposure."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "What reduces repeated token cost?",
+      "options": [
+        "Increasing temperature",
+        "Caching responses",
+        "Longer context",
+        "Fine-tuning"
+      ],
+      "correct_index": 1,
+      "explanation": "Caching avoids repeated expensive calls."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "Explain why monitoring is essential in LLM systems.",
+      "grading_notes": "Look for: hallucination tracking; cost; latency; regression detection."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "Describe the major architectural layers of a production LLM system.",
+      "grading_notes": "Look for: UI; orchestration; retrieval; inference; validation; monitoring; infrastructure."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "Is an LLM system just an API call?",
+      "back": "No. It is a layered architecture around a probabilistic model."
+    },
+    {
+      "front": "Why treat the model as unreliable?",
+      "back": "Because it generates probabilistic outputs that may hallucinate."
+    },
+    {
+      "front": "What reduces token cost?",
+      "back": "Caching, context management, and model selection."
+    },
+    {
+      "front": "Core principle of production LLM design?",
+      "back": "Separate concerns and enforce validation outside the model."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "Sketch an end-to-end LLM architecture for a customer-support system.",
+      "List the layers where failures could occur.",
+      "Explain how you would monitor hallucination rate in production."
+    ]
+  }
+}

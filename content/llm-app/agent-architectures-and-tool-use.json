@@ -1,0 +1,102 @@
+{
+  "subject_slug": "llm-app",
+  "concept_slug": "agent-architectures-and-tool-use",
+  "track": "LLM_APP",
+  "difficulty": "advanced",
+  "version": 1,
+  "title": "Agent Architectures & Tool Use: Beyond Single Prompts",
+  "prerequisites": [
+    "llm-production-architecture",
+    "fine-tuning-and-alignment",
+    "prompt-injection-and-security"
+  ],
+  "lesson": {
+    "why_it_matters": "Modern AI systems are no longer single prompt-response loops. Agents can plan, call tools, retrieve information, and perform multi-step reasoning. Understanding agent architecture is critical for building advanced AI systems.",
+    "core_idea": "An LLM agent is a system where the model can reason about tasks, decide which tools to use, execute those tools, and incorporate results into its next step.",
+    "mental_model": "Think of the model as a coordinator rather than a single-answer generator. It decides what to do next instead of simply generating a final response immediately.",
+    "deep_dive": "Basic agent loop:\n\n1) Receive user input\n2) Model reasons about task\n3) Model decides to call a tool\n4) Tool executes (API, database, calculator, search)\n5) Tool output returned to model\n6) Model continues reasoning\n7) Final answer produced\n\nTool examples:\n- Web search\n- Database query\n- Code execution\n- Calculator\n- Calendar API\n\nWhy agents are powerful:\n- Enable multi-step reasoning\n- Reduce hallucination through tool grounding\n- Allow interaction with real systems\n\nKey architectural components:\n\n• Tool registry\n  Defined set of available functions.\n\n• Tool call validation\n  Arguments must be validated.\n\n• Iteration limits\n  Prevent infinite loops.\n\n• State management\n  Maintain intermediate context.\n\nAgent patterns:\n\n1) ReAct (Reason + Act)\n   Model alternates reasoning and tool use.\n\n2) Plan-and-Execute\n   Model creates plan first, then executes steps.\n\n3) Multi-agent systems\n   Separate agents for different tasks.\n\nRisks:\n- Tool misuse\n- Infinite loops\n- Cost explosion\n- Prompt injection via tool outputs\n\nImportant distinction:\nAgents are orchestrated systems.\nThe model does not automatically become an agent — you design the loop.",
+    "applied_example": "User: \"What were our sales last quarter, and how do they compare to industry trends?\"\n\nAgent workflow:\n1) Call internal database tool for sales.\n2) Call web search for industry trends.\n3) Analyze comparison.\n4) Generate structured report.\n\nSingle prompt could not reliably perform these steps safely.",
+    "failure_modes": "1) Letting model call unrestricted tools.\n2) No validation on tool arguments.\n3) Not limiting iteration cycles.\n4) Not logging tool usage.\n5) Allowing tool outputs to override system instructions.",
+    "design_implications": "Production agent systems should:\n- Restrict tool access.\n- Validate arguments before execution.\n- Limit number of reasoning cycles.\n- Monitor tool usage.\n- Separate model reasoning from tool execution.",
+    "interview_angle": "Strong answer: “Agent architectures extend LLM systems by adding a reasoning loop with controlled tool invocation. The agent is orchestrated externally — the model doesn’t autonomously manage tools.”",
+    "compression_summary": "Agents are orchestrated systems where models reason, call tools, and iterate before producing final answers."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "What distinguishes an agent from a simple LLM call?",
+      "options": [
+        "Longer prompts",
+        "Higher temperature",
+        "Tool invocation and iterative reasoning",
+        "More tokens"
+      ],
+      "correct_index": 2,
+      "explanation": "Agents include tool calls and reasoning loops."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "Why must tool calls be validated?",
+      "options": [
+        "To increase speed",
+        "To reduce token count",
+        "To prevent misuse or malicious inputs",
+        "To increase creativity"
+      ],
+      "correct_index": 2,
+      "explanation": "Validation prevents unsafe or incorrect execution."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "What prevents infinite reasoning loops?",
+      "options": [
+        "Lower temperature",
+        "Iteration limits",
+        "Longer context",
+        "Embedding truncation"
+      ],
+      "correct_index": 1,
+      "explanation": "Agents must enforce maximum iteration cycles."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "Explain why agents require external orchestration.",
+      "grading_notes": "Look for: model does not self-manage tools; external loop; system design."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "Describe the basic agent execution loop.",
+      "grading_notes": "Look for: input → reason → tool → result → iterate → output."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "Does an LLM automatically become an agent?",
+      "back": "No. Agents require external orchestration."
+    },
+    {
+      "front": "What enables real-world interaction in agents?",
+      "back": "Tool invocation."
+    },
+    {
+      "front": "Why limit iteration cycles?",
+      "back": "To prevent infinite loops and cost explosions."
+    },
+    {
+      "front": "Core difference between agent and prompt?",
+      "back": "Agents reason and act iteratively with tools."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "Design an agent that performs financial analysis.",
+      "List risks of unrestricted tool access.",
+      "Explain the difference between ReAct and Plan-and-Execute patterns."
+    ]
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "subject_slug": "foundations",
+  "concept_slug": "context-window",
+  "track": "FOUNDATIONS",
+  "difficulty": "beginner",
+  "version": 1,
+  "title": "Context Windows: How Much the Model Can See",
+  "prerequisites": ["tokens"],
+  "lesson": {
+    "why_it_matters": "A language model can only 'see' a limited number of tokens at once. This limit — called the context window — determines how much information the model can use when generating a response. If you exceed it, earlier information is lost or truncated.",
+    "core_idea": "The context window is the maximum number of tokens the model can process at one time, including both input and output. Everything the model generates depends only on what fits inside that window.",
+    "mental_model": "Imagine the model has a sliding memory screen. It can only view a fixed number of tokens at once. If you add more text beyond the limit, the earliest tokens fall off the screen.",
+    "deep_dive": "When you send a prompt to an LLM, the system constructs a token sequence:\n\n[System instructions] + [Conversation history] + [User message]\n\nAll of this must fit within the model's maximum token limit.\n\nIf the total token count exceeds the limit:\n- Older tokens may be truncated.\n- The request may fail.\n\nImportant nuance: Output tokens also count toward the limit. If the context window is 8,000 tokens and your input uses 7,500, the model can only generate up to 500 output tokens.\n\nLonger context windows allow larger documents, but do not guarantee better reasoning.",
+    "applied_example": "Example:\n\nContext limit: 4,000 tokens.\n\nYou provide:\n- 3,500 tokens of background material.\n- 300 tokens of instructions.\n\nThat leaves 200 tokens available for the response.\n\nIf you continue adding conversation, the earliest parts may be removed or summarized.",
+    "failure_modes": "1) Context overflow errors.\n2) Silent truncation of earlier messages.\n3) Degraded quality when context becomes noisy.\n4) Overloading the model with irrelevant information.",
+    "design_implications": "Effective system design strategies include:\n- Summarizing old conversation history.\n- Retrieving only relevant documents (RAG).\n- Structuring prompts clearly.\n- Tracking token usage.\n\nLonger context ≠ unlimited memory. Intelligent context management is required.",
+    "interview_angle": "Interview-ready framing: “The context window is the maximum token length a model can process at once. It constrains both input and output, and requires careful prompt and memory management in production systems.”\n\nIf asked about scaling: “Larger context windows increase flexibility but also increase compute cost.”",
+    "compression_summary": "The context window is the model’s short-term memory limit. Everything the model generates depends only on the tokens currently inside that window."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "What does the context window limit?",
+      "options": [
+        "The number of users",
+        "The number of tokens processed at once",
+        "The size of the training dataset",
+        "The number of model parameters"
+      ],
+      "correct_index": 1,
+      "explanation": "The context window limits how many tokens the model can process in a single request."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "If your input nearly fills the context window, what happens to the model’s output capacity?",
+      "options": [
+        "It increases automatically.",
+        "It remains unlimited.",
+        "It is reduced because output tokens also count toward the limit.",
+        "It resets the model."
+      ],
+      "correct_index": 2,
+      "explanation": "Output tokens count toward the same context window limit."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "Why might long conversation histories degrade performance?",
+      "options": [
+        "The model becomes tired.",
+        "Irrelevant tokens consume context space and reduce clarity.",
+        "The model resets itself.",
+        "Tokenization stops working."
+      ],
+      "correct_index": 1,
+      "explanation": "Irrelevant or excessive context can crowd out important information and degrade quality."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "Explain why longer context windows do not automatically improve reasoning quality.",
+      "grading_notes": "Look for: noise; attention spread; irrelevant tokens; cost; cognitive overload analogy."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "Describe one strategy for managing long conversations in LLM systems.",
+      "grading_notes": "Look for: summarization; RAG; selective retrieval; truncation strategy."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "What is a context window?",
+      "back": "The maximum number of tokens a model can process in a single request."
+    },
+    {
+      "front": "Do output tokens count toward the context window?",
+      "back": "Yes. Both input and output tokens count."
+    },
+    {
+      "front": "What happens when context exceeds the limit?",
+      "back": "Tokens may be truncated or the request may fail."
+    },
+    {
+      "front": "Does larger context always mean better performance?",
+      "back": "No. Too much irrelevant context can degrade quality."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "Explain the context window using a short-term memory analogy.",
+      "Describe how context limits affect API cost.",
+      "Write one rule for managing context in production systems."
+    ]
+  }
+}

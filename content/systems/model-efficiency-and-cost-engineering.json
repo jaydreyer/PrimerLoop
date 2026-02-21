@@ -1,0 +1,101 @@
+{
+  "subject_slug": "systems",
+  "concept_slug": "model-efficiency-and-cost-engineering",
+  "track": "CORE_TECH",
+  "difficulty": "advanced",
+  "version": 1,
+  "title": "Model Efficiency & Cost Engineering: Designing for Scale",
+  "prerequisites": [
+    "scaling-laws-and-emergence",
+    "llm-production-architecture"
+  ],
+  "lesson": {
+    "why_it_matters": "In production systems, cost and latency matter as much as capability. A model that performs well but costs too much per request is not viable at scale.",
+    "core_idea": "Efficiency engineering balances performance, latency, and cost by optimizing model selection, token usage, caching, and infrastructure design.",
+    "mental_model": "Think of models like engines. A race car engine is powerful but expensive to run. Sometimes you need a compact car engine instead.",
+    "deep_dive": "Major cost drivers:\n\n1) Token usage\n   Cost scales with input + output tokens.\n\n2) Model size\n   Larger models cost more per token.\n\n3) Context length\n   Attention scales quadratically.\n\n4) Tool loops (agents)\n   Multiple calls multiply cost.\n\nOptimization strategies:\n\n• Prompt compression\n  Reduce unnecessary tokens.\n\n• Retrieval instead of context stuffing\n  Inject only relevant data.\n\n• Response caching\n  Avoid repeated identical calls.\n\n• Model tiering\n  Use small model first, escalate to larger one if needed.\n\n• Streaming\n  Improve perceived latency.\n\n• Batching requests\n  Improve throughput.\n\n• Distillation\n  Train smaller model to mimic larger one.\n\n• Mixture-of-Experts (MoE)\n  Activate only part of model per request.\n\nLatency considerations:\n- Model inference time\n- Network round-trip\n- Tool execution time\n\nTradeoff principle:\nHigher quality usually costs more.\nThe goal is not maximum intelligence.\nThe goal is sufficient intelligence at acceptable cost.",
+    "applied_example": "Customer support bot:\n\nTier 1:\nSmall model answers 80% of questions.\n\nTier 2:\nEscalate complex queries to larger model.\n\nResult:\nMajor cost reduction while maintaining quality.",
+    "failure_modes": "1) Always using largest model.\n2) Not tracking token usage.\n3) Embedding entire documents in prompts.\n4) No caching layer.\n5) Unlimited agent loops.",
+    "design_implications": "Production systems should:\n- Track per-request token cost.\n- Monitor latency percentiles (p95, p99).\n- Implement caching strategy.\n- Define escalation policies.\n\nAI systems are economic systems.",
+    "interview_angle": "Strong answer: “Model efficiency requires balancing cost, latency, and capability. Techniques include prompt optimization, model tiering, caching, and retrieval instead of context stuffing.”",
+    "compression_summary": "Efficient AI systems optimize cost and latency while maintaining acceptable performance."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "What is the primary cost driver in LLM APIs?",
+      "options": [
+        "Temperature",
+        "Token usage",
+        "Embedding size",
+        "Prompt length alone"
+      ],
+      "correct_index": 1,
+      "explanation": "LLM cost is typically proportional to tokens processed."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "Why use model tiering?",
+      "options": [
+        "To increase context",
+        "To reduce cost by escalating only when needed",
+        "To improve embeddings",
+        "To increase token usage"
+      ],
+      "correct_index": 1,
+      "explanation": "Tiering reduces cost by using smaller models when possible."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "Why avoid stuffing full documents into prompts?",
+      "options": [
+        "It increases hallucinations",
+        "It increases cost and latency",
+        "It reduces embeddings",
+        "It breaks attention"
+      ],
+      "correct_index": 1,
+      "explanation": "Long prompts increase token cost and attention computation."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "Explain how caching reduces AI system cost.",
+      "grading_notes": "Look for: reuse identical responses; avoid repeated inference calls."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "Describe a strategy to balance performance and cost.",
+      "grading_notes": "Look for: tiering; retrieval; prompt optimization; escalation logic."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "Main driver of LLM API cost?",
+      "back": "Token usage."
+    },
+    {
+      "front": "What is model tiering?",
+      "back": "Using smaller models first, escalating to larger ones if needed."
+    },
+    {
+      "front": "Why is long context expensive?",
+      "back": "Attention scales quadratically with sequence length."
+    },
+    {
+      "front": "Core tradeoff in AI systems?",
+      "back": "Cost vs performance vs latency."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "Design a cost-efficient LLM architecture for 1M daily users.",
+      "Explain how token tracking influences product decisions.",
+      "When would you choose a smaller model over a larger one?"
+    ]
+  }
+}

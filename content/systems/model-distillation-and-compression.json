@@ -1,0 +1,101 @@
+{
+  "subject_slug": "systems",
+  "concept_slug": "model-distillation-and-compression",
+  "track": "CORE_TECH",
+  "difficulty": "advanced",
+  "version": 1,
+  "title": "Model Distillation & Compression: Making Models Smaller & Faster",
+  "prerequisites": [
+    "scaling-laws-and-emergence",
+    "model-efficiency-and-cost-engineering"
+  ],
+  "lesson": {
+    "why_it_matters": "Large models are powerful but expensive. Distillation and compression techniques allow smaller models to approximate the performance of larger ones at lower cost and latency.",
+    "core_idea": "Model distillation trains a smaller 'student' model to mimic the behavior of a larger 'teacher' model.",
+    "mental_model": "Think of a master teacher explaining solutions step-by-step to a junior student. The student learns patterns faster than learning from raw data alone.",
+    "deep_dive": "Distillation process:\n\n1) Train large model (teacher).\n2) Generate outputs from teacher.\n3) Train smaller model (student) to match those outputs.\n\nWhy this works:\nThe teacher model's probability distributions contain richer signal than one-hot labels.\n\nBenefits:\n• Lower inference cost\n• Faster response time\n• Easier deployment on edge devices\n\nCompression techniques:\n\n• Quantization\n  Reduce numerical precision (e.g., 32-bit → 8-bit).\n\n• Pruning\n  Remove low-importance weights.\n\n• Knowledge distillation\n  Transfer behavior to smaller network.\n\n• Low-rank approximations\n  Reduce matrix complexity.\n\nTradeoffs:\n• Slight performance drop\n• Reduced generality\n• Requires evaluation\n\nKey insight:\nDistillation allows you to trade some capability for major efficiency gains.",
+    "applied_example": "A 70B parameter model handles complex reasoning.\n\nDistill into 7B model for:\n• Mobile deployment\n• Low-latency chatbot\n• Cost-sensitive applications\n\nPerformance slightly reduced, but cost dramatically lower.",
+    "failure_modes": "1) Distilling without proper evaluation.\n2) Over-compressing critical capabilities.\n3) Ignoring domain differences between teacher and student.\n4) Assuming compression solves scaling limits.",
+    "design_implications": "Distillation is ideal when:\n• You need lower latency.\n• You need lower cost.\n• You deploy at scale.\n\nIt is not ideal when:\n• You need frontier-level reasoning performance.",
+    "interview_angle": "Strong answer: “Distillation trains a smaller model to mimic a larger one, improving efficiency while sacrificing some capability.”",
+    "compression_summary": "Distillation transfers knowledge from large models into smaller, cheaper ones."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "What is the purpose of model distillation?",
+      "options": [
+        "Increase training data",
+        "Make a smaller model mimic a larger one",
+        "Increase context window",
+        "Reduce token count"
+      ],
+      "correct_index": 1,
+      "explanation": "Distillation transfers knowledge from teacher to student."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "What does quantization do?",
+      "options": [
+        "Increase embeddings",
+        "Reduce numerical precision",
+        "Expand context window",
+        "Change attention mechanism"
+      ],
+      "correct_index": 1,
+      "explanation": "Quantization reduces numerical precision to lower memory usage."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "What is the main tradeoff of compression?",
+      "options": [
+        "Increased cost",
+        "Reduced capability",
+        "Higher token usage",
+        "More hallucinations"
+      ],
+      "correct_index": 1,
+      "explanation": "Compression may slightly reduce performance."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "Explain why teacher probability distributions contain richer signal than raw labels.",
+      "grading_notes": "Look for: soft targets; distribution knowledge; more information than hard labels."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "When would you choose distillation over scaling?",
+      "grading_notes": "Look for: cost; latency; edge deployment; scale constraints."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "What is a teacher model?",
+      "back": "A large model used to train a smaller student model."
+    },
+    {
+      "front": "Why compress models?",
+      "back": "To reduce cost and latency."
+    },
+    {
+      "front": "What is quantization?",
+      "back": "Reducing numerical precision to lower memory usage."
+    },
+    {
+      "front": "Main tradeoff of distillation?",
+      "back": "Slight performance reduction."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "Explain distillation to a CTO.",
+      "Describe when compression is appropriate.",
+      "List risks of over-compressing a model."
+    ]
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "subject_slug": "systems",
+  "concept_slug": "data-pipelines-and-pretraining",
+  "track": "CORE_TECH",
+  "difficulty": "advanced",
+  "version": 1,
+  "title": "Data Pipelines & Pretraining: Where Model Knowledge Comes From",
+  "prerequisites": [
+    "training-vs-inference",
+    "tokens-and-context",
+    "scaling-laws-and-emergence"
+  ],
+  "lesson": {
+    "why_it_matters": "Model capability is shaped as much by data as by architecture. Understanding how data is collected, cleaned, filtered, and tokenized explains why scaling works, why models have blind spots, and why quality often beats quantity.",
+    "core_idea": "Pretraining data pipelines transform messy real-world text into a high-quality token stream used to train an LLM. The pipeline determines what the model learns and what it misses.",
+    "mental_model": "Training data is the model’s 'life experience.' Data pipelines decide what the model sees, how often it sees it, and what gets removed. If the pipeline is bad, the model learns bad habits.",
+    "deep_dive": "High-level pipeline stages:\n\n1) Data sourcing\n- Public web text\n- Books, articles\n- Code repositories\n- Academic papers\n- Licensed/private datasets\n\n2) Cleaning & normalization\n- Remove boilerplate (nav bars, cookie banners)\n- Normalize encoding\n- Remove duplicates (dedup)\n- Fix broken markup\n\n3) Filtering & quality scoring\n- Remove spam, low-quality text\n- Remove malware/injection patterns in code\n- Filter toxic/unsafe content (policy dependent)\n- Keep higher-signal content (high information density)\n\n4) De-duplication (critical)\n- Exact duplicates and near-duplicates\n- Prevents memorization\n- Improves effective dataset diversity\n\n5) Privacy & safety filtering\n- Remove obvious PII\n- Remove credential-like strings\n- Filter sensitive sources\n\n6) Mixing & sampling strategy\n- Decide proportions (web vs books vs code)\n- Reweight underrepresented domains\n- Curriculum learning (easy→hard) sometimes used\n\n7) Tokenization at scale\n- Convert cleaned text into tokens\n- Different tokenizers produce different token streams\n- Tokenization affects:\n  • cost\n  • context efficiency\n  • multilingual performance\n\n8) Packing & batching\n- Pack token sequences into fixed-length training examples\n- Important for GPU efficiency\n\nKey concepts:\n\n• Data quality > data quantity (often)\nHigh-quality tokens teach better patterns than noisy text.\n\n• Data diversity matters\nBroad coverage helps generalization.\n\n• Contamination risk\nIf eval/benchmark questions leak into training data, metrics become inflated.\n\n• Synthetic data\nModels can generate training examples to:\n- improve instruction following\n- expand rare skills\nBut synthetic data must be curated to avoid feedback loops.\n\nWhy models have weird knowledge:\n- They learn statistical patterns from what they see.\n- Gaps are often pipeline gaps.\n\nPractical implication:\nIf your enterprise bot is wrong, sometimes it's not the model—it's your data and retrieval.",
+    "applied_example": "Two models with the same architecture:\n\nModel A:\n- 80% noisy web text\n- poor dedup\n- minimal filtering\n\nModel B:\n- curated high-signal mix\n- strong dedup\n- better quality filters\n\nModel B often performs better even with fewer total tokens.",
+    "failure_modes": "1) Assuming 'more data' always improves performance.\n2) Ignoring contamination (benchmarks in training).\n3) Weak dedup leading to memorization.\n4) Over-filtering that removes useful diversity.\n5) Using synthetic data without quality controls.",
+    "design_implications": "For product builders:\n- If your outputs are weak, evaluate data quality and retrieval first.\n- Use eval sets that avoid contamination.\n- Treat data pipeline changes as high-risk and re-run evals.\n\nData is a first-class part of the system.",
+    "interview_angle": "Strong answer: “Pretraining pipelines source, clean, deduplicate, filter, and tokenize data into a training stream. Data quality and mixing strategy heavily influence model capability, bias, and reliability.”",
+    "compression_summary": "Pretraining data pipelines determine what the model learns by controlling sourcing, filtering, dedup, mixing, and tokenization."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "Why is deduplication important in pretraining?",
+      "options": [
+        "It increases temperature",
+        "It reduces memorization and improves diversity",
+        "It makes embeddings larger",
+        "It increases context length"
+      ],
+      "correct_index": 1,
+      "explanation": "Dedup prevents repeated exposure to the same text and reduces memorization risk."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "What is dataset contamination?",
+      "options": [
+        "Bad tokenization",
+        "Benchmarks leaking into training data",
+        "Too many books",
+        "Using vector databases"
+      ],
+      "correct_index": 1,
+      "explanation": "If benchmark items appear in training data, eval scores can be misleading."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "Why can data quality beat data quantity?",
+      "options": [
+        "Models dislike long prompts",
+        "High-signal tokens teach better patterns than noisy tokens",
+        "It increases inference speed",
+        "It reduces embeddings"
+      ],
+      "correct_index": 1,
+      "explanation": "High-quality examples provide clearer learning signal."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "Explain why tokenization choices affect cost and performance.",
+      "grading_notes": "Look for: different token splits; context efficiency; token counts; multilingual tradeoffs."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "Describe the main stages of a pretraining data pipeline.",
+      "grading_notes": "Look for: sourcing, cleaning, filtering, dedup, mixing, tokenization, packing."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "What does a pretraining pipeline do?",
+      "back": "Sources, cleans, filters, deduplicates, mixes, and tokenizes data for training."
+    },
+    {
+      "front": "What is contamination?",
+      "back": "Eval/benchmark data appearing in training data."
+    },
+    {
+      "front": "Why dedup?",
+      "back": "Reduce memorization and increase effective diversity."
+    },
+    {
+      "front": "Why can quality beat quantity?",
+      "back": "Cleaner signal teaches better patterns than noisy data."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "Explain contamination and why it breaks evals.",
+      "If a model is weak in a domain, what data pipeline changes might help?",
+      "Describe the tradeoffs of aggressive filtering."
+    ]
+  }
+}

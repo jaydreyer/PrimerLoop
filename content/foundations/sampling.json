@@ -1,0 +1,98 @@
+{
+  "subject_slug": "foundations",
+  "concept_slug": "sampling",
+  "track": "FOUNDATIONS",
+  "difficulty": "beginner",
+  "version": 1,
+  "title": "Sampling: How the Model Chooses the Next Token",
+  "prerequisites": ["context-window"],
+  "lesson": {
+    "why_it_matters": "After a model computes probabilities for possible next tokens, it still must choose one. Sampling determines how that choice is made. Sampling settings control creativity, determinism, reliability, and variability.",
+    "core_idea": "Sampling is the method used to select the next token from the model’s probability distribution. The model does not always pick the highest-probability token. Instead, parameters like temperature and top-p shape how randomness influences selection.",
+    "mental_model": "Imagine the model produces a ranked list of possible next tokens with probabilities:\n\nToken A: 0.60\nToken B: 0.25\nToken C: 0.10\nToken D: 0.05\n\nSampling decides whether to always pick Token A — or sometimes allow B or C.",
+    "deep_dive": "When an LLM processes input, it outputs a probability distribution over the vocabulary. Sampling strategies determine how to choose from that distribution.\n\nCommon parameters:\n\n• Temperature:\n  - Low temperature (e.g., 0.1) → more deterministic, favors highest probability.\n  - High temperature (e.g., 1.0+) → more randomness.\n\n• Top-p (nucleus sampling):\n  - Limits selection to the smallest set of tokens whose cumulative probability exceeds p.\n  - Example: top-p = 0.9 keeps only tokens that make up the top 90% probability mass.\n\n• Top-k:\n  - Restricts selection to the top k tokens.\n\nImportant nuance: Even small changes in sampling can significantly change output style and variability.",
+    "applied_example": "Question: \"Write a creative story about space.\"\n\nTemperature 0.1 → Predictable, structured response.\nTemperature 1.2 → More surprising, imaginative phrasing.\n\nFor factual Q&A (e.g., math or legal info), low temperature improves reliability.\nFor brainstorming or fiction, higher temperature increases variety.",
+    "failure_modes": "1) High temperature causing hallucinations.\n2) Low temperature causing repetitive or dull responses.\n3) Assuming sampling changes knowledge (it changes expression, not training).\n4) Overlooking sampling settings in production systems.",
+    "design_implications": "In production:\n- Use low temperature for deterministic workflows.\n- Use moderate temperature for conversational assistants.\n- Test outputs under different sampling parameters.\n\nSampling does not change what the model knows — it changes how it expresses predictions.",
+    "interview_angle": "Interview-ready framing: “Sampling controls how the model selects from its probability distribution. Temperature scales the distribution, and nucleus sampling (top-p) limits selection to high-probability tokens.”\n\nIf pressed: “Sampling affects diversity, determinism, and risk of hallucination.”",
+    "compression_summary": "Sampling determines how the model chooses the next token from its probability distribution. It controls randomness and creativity."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "What does temperature primarily control?",
+      "options": [
+        "Training speed",
+        "Model size",
+        "Randomness in token selection",
+        "Context length"
+      ],
+      "correct_index": 2,
+      "explanation": "Temperature affects how strongly the model favors high-probability tokens versus allowing lower-probability ones."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "What does top-p (nucleus sampling) do?",
+      "options": [
+        "Selects only tokens above a fixed probability threshold",
+        "Restricts choices to tokens within a cumulative probability mass",
+        "Changes the model’s training data",
+        "Increases model memory"
+      ],
+      "correct_index": 1,
+      "explanation": "Top-p limits selection to tokens that collectively account for a chosen probability mass."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "Does sampling change what the model knows?",
+      "options": [
+        "Yes, it updates the weights",
+        "Yes, it retrains the model",
+        "No, it only affects how predictions are selected",
+        "Yes, it expands the context window"
+      ],
+      "correct_index": 2,
+      "explanation": "Sampling affects token selection, not the learned parameters."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "Explain how temperature affects output reliability.",
+      "grading_notes": "Look for: low temperature = deterministic; high temperature = creative but riskier; impact on hallucinations."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "When would you prefer low temperature versus high temperature?",
+      "grading_notes": "Look for: low for factual tasks; high for brainstorming/creative writing."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "What does sampling control?",
+      "back": "How the model selects the next token from its probability distribution."
+    },
+    {
+      "front": "Low temperature means what?",
+      "back": "More deterministic and predictable outputs."
+    },
+    {
+      "front": "What is top-p?",
+      "back": "A sampling method that limits token choices to a cumulative probability mass."
+    },
+    {
+      "front": "Does sampling change model knowledge?",
+      "back": "No. It only changes how predictions are selected."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "Describe temperature in your own words using a probability example.",
+      "Explain why high temperature can increase hallucination risk.",
+      "Write one production rule for choosing sampling parameters."
+    ]
+  }
+}

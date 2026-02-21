@@ -1,0 +1,109 @@
+{
+  "subject_slug": "systems",
+  "concept_slug": "complete-llm-system-lifecycle",
+  "track": "CORE_TECH",
+  "difficulty": "advanced",
+  "version": 1,
+  "title": "Capstone: The Complete LLM System Lifecycle",
+  "prerequisites": [
+    "training-vs-inference",
+    "data-pipelines-and-pretraining",
+    "tokens-and-context",
+    "sampling",
+    "embeddings",
+    "retrieval-augmented-generation",
+    "alignment-and-safety-at-scale",
+    "evaluation-and-benchmarking",
+    "determinism-and-reproducibility"
+  ],
+  "lesson": {
+    "why_it_matters": "Understanding individual components is useful. Understanding how they connect is senior-level. The LLM lifecycle ties data, training, inference, retrieval, alignment, evaluation, and monitoring into one continuous system.",
+    "core_idea": "An LLM product is not just a model. It is a system composed of data pipelines, training, inference, retrieval, alignment, evaluation, and monitoring that operate in a continuous feedback loop.",
+    "mental_model": "Think of an LLM product as a factory pipeline:\n\nData → Training → Model → Inference → Retrieval → Alignment → Evaluation → Monitoring → Iteration → Back to Data.\n\nEvery stage influences the next.",
+    "deep_dive": "Stage 1 — Data & Pretraining\n- Collect diverse, high-quality text\n- Clean, filter, deduplicate\n- Tokenize into numerical form\n- Train transformer model on next-token prediction\n\nResult: A base model with general language ability.\n\nStage 2 — Alignment & Fine-Tuning\n- Instruction tuning\n- RLHF or preference optimization\n- Safety training\n\nResult: Model behaves more predictably and safely.\n\nStage 3 — Inference (What happens when you press submit)\n1) Input text → tokenization\n2) Tokens enter transformer layers\n3) Model predicts probability distribution of next token\n4) Sampling selects token\n5) Repeat until completion\n\nKey constraints:\n- Context window limit\n- Cost per token\n- Probabilistic outputs\n\nStage 4 — Retrieval (RAG Layer)\n- User query converted to embedding vector\n- Vector database retrieves similar chunks\n- Retrieved text injected into prompt\n- Model generates grounded answer\n\nThis allows smaller context usage and domain-specific knowledge.\n\nStage 5 — System Orchestration\n- Prompt templates\n- Tool calling\n- Structured outputs\n- Caching\n\nThe model is just one component of the system.\n\nStage 6 — Evaluation\n- Offline test sets\n- Safety tests\n- Groundedness checks\n- Regression gates\n\nYou measure the entire system, not just the model.\n\nStage 7 — Monitoring & Drift\n- Quality degradation\n- Cost spikes\n- Latency changes\n- User behavior shifts\n\nStage 8 — Iteration Loop\n- Adjust prompts\n- Update retrieval corpus\n- Improve eval suite\n- Fine-tune or swap model\n\nThe lifecycle repeats.\n\nCritical Insight:\nMost production failures occur at the system level (retrieval errors, prompt issues, tool failures) — not because the base model is 'dumb.'",
+    "applied_example": "Enterprise Support Bot Lifecycle:\n\n1) Pretrain base model (provider)\n2) Add instruction tuning for support tone\n3) Build RAG layer over internal KB\n4) Add refusal policies\n5) Create eval set of 50 support scenarios\n6) Monitor hallucination and citation rate\n7) Update retrieval when KB changes\n8) Iterate\n\nThis is the real production loop.",
+    "failure_modes": "1) Treating the model as the whole system.\n2) Skipping evaluation.\n3) Not monitoring drift.\n4) Ignoring retrieval quality.\n5) Upgrading model without re-running evals.\n6) Optimizing cost without tracking quality.",
+    "design_implications": "Senior builders think in lifecycle loops:\n- Data quality affects model capability.\n- Retrieval affects groundedness.\n- Sampling affects determinism.\n- Alignment affects behavior.\n- Evaluation protects against regressions.\n- Monitoring detects drift.\n\nEverything connects.",
+    "interview_angle": "Strong answer: “An LLM system is a lifecycle: data → training → inference → retrieval → alignment → evaluation → monitoring → iteration. The model is one component of a larger feedback loop.”",
+    "compression_summary": "LLM products are continuous feedback systems, not static models."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "Which component enables domain-specific knowledge without retraining?",
+      "options": [
+        "Sampling",
+        "RAG",
+        "Temperature",
+        "Context shrinking"
+      ],
+      "correct_index": 1,
+      "explanation": "RAG retrieves external knowledge at inference time."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "What stage detects regressions after a model upgrade?",
+      "options": [
+        "Tokenization",
+        "Evaluation",
+        "Sampling",
+        "Embedding"
+      ],
+      "correct_index": 1,
+      "explanation": "Evaluation suites catch regressions before and after release."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "What is the main constraint during inference?",
+      "options": [
+        "Data deduplication",
+        "Context window and token cost",
+        "Vector dimension size",
+        "GPU count"
+      ],
+      "correct_index": 1,
+      "explanation": "Context size and token cost are primary inference constraints."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "Explain why most LLM failures in production are system-level, not model-level.",
+      "grading_notes": "Look for: retrieval errors, prompt flaws, tool issues, drift, evaluation gaps."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "Describe the full LLM lifecycle in your own words.",
+      "grading_notes": "Look for: data, training, inference, retrieval, alignment, evaluation, monitoring, iteration loop."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "What is the LLM lifecycle?",
+      "back": "Data → Training → Inference → Retrieval → Alignment → Evaluation → Monitoring → Iteration."
+    },
+    {
+      "front": "Is the model the whole system?",
+      "back": "No. The model is one component in a larger lifecycle."
+    },
+    {
+      "front": "Where do most failures occur?",
+      "back": "At the system level: retrieval, prompts, tools, evaluation gaps."
+    },
+    {
+      "front": "Why is evaluation critical?",
+      "back": "It prevents regressions and verifies safety and quality."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "Draw the LLM lifecycle from memory.",
+      "Where in the lifecycle does RAG fit?",
+      "Where would cost optimization apply?",
+      "What stage protects against regressions?"
+    ]
+  }
+}

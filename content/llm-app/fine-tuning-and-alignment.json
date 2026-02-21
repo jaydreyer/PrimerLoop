@@ -1,0 +1,102 @@
+{
+  "subject_slug": "llm-app",
+  "concept_slug": "fine-tuning-and-alignment",
+  "track": "LLM_APP",
+  "difficulty": "advanced",
+  "version": 1,
+  "title": "Fine-Tuning & Alignment: Shaping Model Behavior",
+  "prerequisites": [
+    "what-is-an-llm",
+    "sampling",
+    "llm-production-architecture"
+  ],
+  "lesson": {
+    "why_it_matters": "Prompt engineering changes behavior temporarily. Fine-tuning changes behavior structurally. Understanding the difference is critical for designing scalable AI systems.",
+    "core_idea": "Fine-tuning adjusts a pre-trained model using additional task-specific data. Alignment ensures the model behaves safely, helpfully, and according to human preferences.",
+    "mental_model": "Think of a pre-trained model as a well-read generalist. Fine-tuning is like specialized training. Alignment is teaching it social rules and guardrails.",
+    "deep_dive": "Pre-training vs Fine-tuning:\n\n1) Pre-training\n   - Massive dataset\n   - Learns language patterns\n   - Predicts next token\n\n2) Fine-tuning\n   - Smaller curated dataset\n   - Task-specific behavior\n   - Adjusts weights\n\nTypes of fine-tuning:\n\n• Supervised Fine-Tuning (SFT)\n  Model learns from example input-output pairs.\n\n• Reinforcement Learning from Human Feedback (RLHF)\n  Humans rank outputs → reward model → adjust weights.\n\n• Parameter-Efficient Fine-Tuning (LoRA, adapters)\n  Adjust only small subsets of parameters.\n\nAlignment:\n\nAlignment ensures:\n- Safety\n- Helpfulness\n- Harmlessness\n- Policy compliance\n\nImportant distinction:\nFine-tuning changes model weights.\nPrompting does not.\n\nWhen to fine-tune:\n- Repeated structured tasks\n- Domain-specific jargon\n- Consistent output format\n\nWhen NOT to fine-tune:\n- Factual knowledge updates (use RAG)\n- Minor behavior tweaks (use prompts)\n\nCost considerations:\n- Expensive to train\n- Requires labeled data\n- Risk of overfitting",
+    "applied_example": "Customer-support assistant:\n\nOption A: Prompt-engineer tone.\nOption B: Fine-tune on thousands of company responses.\n\nFine-tuned model will consistently adopt company voice without long prompts.",
+    "failure_modes": "1) Using fine-tuning to add knowledge (should use RAG).\n2) Overfitting small datasets.\n3) Ignoring evaluation after fine-tuning.\n4) Assuming fine-tuning removes need for guardrails.",
+    "design_implications": "Production systems must:\n- Decide between prompt, RAG, or fine-tune.\n- Maintain evaluation datasets after fine-tuning.\n- Monitor drift and unintended behaviors.\n\nFine-tuning is powerful but must be measured carefully.",
+    "interview_angle": "Strong answer: “Fine-tuning adjusts model weights for specialized behavior, while RAG provides external knowledge. Alignment ensures outputs are safe and helpful.”",
+    "compression_summary": "Fine-tuning changes model weights for task-specific behavior. Alignment ensures safe and helpful responses."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "What does fine-tuning modify?",
+      "options": [
+        "Prompts",
+        "Embeddings",
+        "Model weights",
+        "Context windows"
+      ],
+      "correct_index": 2,
+      "explanation": "Fine-tuning updates model parameters."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "When should you use RAG instead of fine-tuning?",
+      "options": [
+        "To change tone",
+        "To add factual knowledge",
+        "To reduce token count",
+        "To improve safety"
+      ],
+      "correct_index": 1,
+      "explanation": "RAG is best for injecting up-to-date factual information."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "What is RLHF?",
+      "options": [
+        "A tokenization method",
+        "A type of embedding",
+        "Reinforcement Learning from Human Feedback",
+        "A retrieval method"
+      ],
+      "correct_index": 2,
+      "explanation": "RLHF uses human feedback to guide training."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "Explain the difference between prompt engineering and fine-tuning.",
+      "grading_notes": "Look for: prompt does not change weights; fine-tuning changes parameters."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "Describe when fine-tuning is appropriate in production.",
+      "grading_notes": "Look for: repeated structured tasks; domain tone; consistent formatting."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "Does prompting change model weights?",
+      "back": "No. Only fine-tuning changes weights."
+    },
+    {
+      "front": "Best tool for adding new knowledge?",
+      "back": "RAG, not fine-tuning."
+    },
+    {
+      "front": "What is alignment?",
+      "back": "Ensuring the model behaves safely and helpfully."
+    },
+    {
+      "front": "Risk of small fine-tuning dataset?",
+      "back": "Overfitting."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "When would you fine-tune instead of using RAG?",
+      "Explain how RLHF improves alignment.",
+      "Describe risks of overfitting in fine-tuning."
+    ]
+  }
+}

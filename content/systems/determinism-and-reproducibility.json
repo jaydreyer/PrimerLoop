@@ -1,0 +1,102 @@
+{
+  "subject_slug": "systems",
+  "concept_slug": "determinism-and-reproducibility",
+  "track": "CORE_TECH",
+  "difficulty": "advanced",
+  "version": 1,
+  "title": "Determinism & Reproducibility: Why LLM Outputs Change",
+  "prerequisites": [
+    "sampling",
+    "training-vs-inference",
+    "evaluation-and-benchmarking"
+  ],
+  "lesson": {
+    "why_it_matters": "LLMs are probabilistic systems. The same input can produce different outputs. In production systems, lack of determinism affects debugging, testing, compliance, and user trust.",
+    "core_idea": "LLMs generate the next token by sampling from a probability distribution. Because sampling involves randomness, outputs can vary. Determinism means producing identical outputs for identical inputs under controlled conditions.",
+    "mental_model": "Think of the model as predicting a probability distribution over possible next tokens. Sampling chooses one of them. If you allow randomness, outputs vary. If you restrict randomness, outputs become more predictable—but rarely perfectly identical.",
+    "deep_dive": "Why outputs change:\n\n1) Sampling randomness\n- Temperature\n- Top-p (nucleus sampling)\n- Top-k\n\n2) Floating point precision\n- GPUs may produce slightly different rounding\n- Parallelization order can change outputs\n\n3) Non-deterministic kernels\n- Some inference operations are optimized for speed, not determinism\n\n4) External system effects\n- Retrieval differences\n- Tool latency differences\n- Prompt versioning changes\n\n5) Model updates\n- Provider silently updates model weights\n- New safety tuning\n\nTemperature recap:\n- High temperature → more randomness\n- Low temperature → more predictable\n- Temperature = 0 does NOT guarantee perfect determinism in all systems\n\nReproducibility in production:\n\nTo improve determinism:\n- Fix temperature (often 0 or near 0)\n- Fix top-p/top-k\n- Use a fixed model version\n- Log prompts exactly\n- Log tool outputs\n- Freeze retrieval corpus\n\nBut:\nAbsolute determinism may still not be guaranteed across hardware or provider infrastructure.\n\nWhy determinism matters:\n\n1) Debugging\nIf output changes, root cause analysis becomes difficult.\n\n2) Evaluation\nOffline evals require stable outputs for comparison.\n\n3) Compliance\nRegulated industries may require reproducible reasoning.\n\n4) Caching\nNon-determinism reduces cache effectiveness.\n\nImportant distinction:\nDeterministic ≠ Correct\nA perfectly reproducible answer can still be wrong.\n\nProduction pattern:\n- Creative applications → allow variability.\n- Structured systems (JSON output, workflows) → minimize randomness.",
+    "applied_example": "You deploy a contract analysis assistant.\n\nIf temperature is 0.8:\n- Each run may summarize slightly differently.\n\nIf temperature is 0.0:\n- Output becomes more stable.\n\nIf you also:\n- Fix model version\n- Fix retrieval\n- Log prompts\n\nThen behavior becomes highly reproducible.\n\nBut if you upgrade the model silently, reproducibility disappears.",
+    "failure_modes": "1) Assuming temperature=0 guarantees perfect reproducibility.\n2) Ignoring model version drift.\n3) Not logging full prompts and tool results.\n4) Comparing eval outputs without fixing sampling parameters.\n5) Allowing randomness in systems that require strict schemas.",
+    "design_implications": "When building LLM products:\n- Decide where variability is acceptable.\n- Use deterministic settings for backend logic.\n- Log everything needed for replay.\n- Treat model upgrades like dependency upgrades.\n\nReproducibility is a system-level property, not just a model parameter.",
+    "interview_angle": "Strong answer: “LLMs are probabilistic because they sample from a next-token distribution. Determinism requires fixing sampling parameters, model version, retrieval, and logging. Even then, hardware and provider updates can affect reproducibility.”",
+    "compression_summary": "LLMs are probabilistic. Reproducibility requires controlling sampling, versions, and system inputs."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "Why can the same prompt produce different outputs?",
+      "options": [
+        "Because embeddings change",
+        "Because sampling introduces randomness",
+        "Because context windows shrink",
+        "Because vector databases rotate"
+      ],
+      "correct_index": 1,
+      "explanation": "Sampling from a probability distribution introduces randomness."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "Does setting temperature to 0 guarantee perfect determinism?",
+      "options": [
+        "Yes, always",
+        "No, due to infrastructure and floating point factors",
+        "Only with embeddings",
+        "Only in RAG systems"
+      ],
+      "correct_index": 1,
+      "explanation": "Other factors like model updates and hardware differences can affect outputs."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "Why is reproducibility important for evaluation?",
+      "options": [
+        "To reduce latency",
+        "To compare outputs consistently",
+        "To reduce token count",
+        "To increase context"
+      ],
+      "correct_index": 1,
+      "explanation": "Stable outputs allow consistent evaluation and regression testing."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "List the system-level factors that affect reproducibility beyond temperature.",
+      "grading_notes": "Look for: model version, retrieval corpus, tool outputs, floating point precision, hardware, provider updates."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "When should you allow randomness in an LLM system?",
+      "grading_notes": "Look for: creative tasks vs structured workflows; user experience considerations."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "Why are LLMs non-deterministic?",
+      "back": "They sample from a probability distribution over next tokens."
+    },
+    {
+      "front": "What controls randomness?",
+      "back": "Temperature, top-p, top-k, and system factors."
+    },
+    {
+      "front": "Does temperature=0 ensure reproducibility?",
+      "back": "No—model versions and infrastructure also matter."
+    },
+    {
+      "front": "Why log prompts and retrieval?",
+      "back": "To enable replay and debugging."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "Explain why reproducibility is harder in LLM systems than traditional software.",
+      "Design a logging strategy for replaying a failed request.",
+      "When would you intentionally allow variability?"
+    ]
+  }
+}

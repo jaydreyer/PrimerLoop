@@ -1,0 +1,102 @@
+{
+  "subject_slug": "systems",
+  "concept_slug": "transformer-architecture-and-attention",
+  "track": "CORE_TECH",
+  "difficulty": "advanced",
+  "version": 1,
+  "title": "Transformer Architecture & Attention: How LLMs Actually Work",
+  "prerequisites": [
+    "neural-networks",
+    "tokens",
+    "embeddings"
+  ],
+  "lesson": {
+    "why_it_matters": "All modern LLMs are based on the Transformer architecture. Understanding transformers explains how models handle context, relationships, and long-range dependencies in text.",
+    "core_idea": "Transformers use a mechanism called self-attention to determine how each token relates to every other token in the sequence.",
+    "mental_model": "Imagine reading a sentence and constantly re-evaluating which previous words matter most for understanding the current word. Attention lets the model weigh relationships dynamically.",
+    "deep_dive": "Step-by-step transformer pipeline:\n\n1) Tokenization\n   Text → tokens\n\n2) Embedding Layer\n   Tokens → vectors\n\n3) Positional Encoding\n   Adds information about token order.\n   Without it, the model wouldn’t know sequence position.\n\n4) Self-Attention Mechanism\n   For each token:\n   - Query (Q): what am I looking for?\n   - Key (K): what do I contain?\n   - Value (V): what information do I provide?\n\n   Attention score = similarity(Q, K)\n   Weighted combination of Values produces updated token representation.\n\n5) Multi-Head Attention\n   Multiple attention processes run in parallel.\n   Each head learns different types of relationships.\n\n6) Feedforward Layer\n   Non-linear transformation applied independently to each token.\n\n7) Stacking Layers\n   Dozens of transformer blocks stacked.\n   Each layer refines representations.\n\nKey insight:\nAttention allows long-range dependencies.\nThe word at the end of a paragraph can directly attend to the first word.",
+    "applied_example": "Sentence:\n\"The trophy didn't fit in the suitcase because it was too large.\"\n\nThe word \"it\" must attend to \"trophy\" — not \"suitcase\".\n\nAttention mechanism learns this relationship statistically.",
+    "failure_modes": "1) Assuming transformers understand meaning inherently.\n2) Ignoring positional encoding importance.\n3) Believing attention equals reasoning.\n4) Overlooking computational cost of attention (O(n^2)).",
+    "design_implications": "Attention cost grows quadratically with sequence length.\n\nThis is why:\n- Long context windows are expensive.\n- Efficient transformer variants exist (sparse attention).\n\nUnderstanding attention helps you reason about:\n- Context limits\n- Latency\n- Memory usage",
+    "interview_angle": "Strong answer: “Transformers use self-attention to dynamically weight relationships between tokens. Each token computes query, key, and value vectors to determine relevance across the sequence.”",
+    "compression_summary": "Transformers use self-attention to model relationships between all tokens in a sequence."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "What does self-attention compute?",
+      "options": [
+        "Token frequency",
+        "Similarity between tokens",
+        "Embedding size",
+        "Loss function"
+      ],
+      "correct_index": 1,
+      "explanation": "Self-attention measures similarity between query and key vectors."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "Why is positional encoding necessary?",
+      "options": [
+        "To increase token count",
+        "To encode word order information",
+        "To reduce embeddings",
+        "To compress vectors"
+      ],
+      "correct_index": 1,
+      "explanation": "Without positional encoding, the model would not know sequence order."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "Why is attention computationally expensive?",
+      "options": [
+        "Because embeddings are large",
+        "Because attention compares every token with every other token",
+        "Because sampling increases cost",
+        "Because tokens are expensive"
+      ],
+      "correct_index": 1,
+      "explanation": "Self-attention scales quadratically with sequence length."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "Explain the roles of Query, Key, and Value in attention.",
+      "grading_notes": "Look for: query seeks relevance; key represents content; value provides weighted information."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "Why do transformers stack multiple layers?",
+      "grading_notes": "Look for: refinement; hierarchical representations; increasing abstraction."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "What allows transformers to model long-range dependencies?",
+      "back": "Self-attention."
+    },
+    {
+      "front": "What problem does positional encoding solve?",
+      "back": "Encoding token order in a sequence."
+    },
+    {
+      "front": "Why does attention scale poorly?",
+      "back": "It compares every token with every other token (O(n^2))."
+    },
+    {
+      "front": "What are Q, K, and V?",
+      "back": "Vectors used to compute attention relevance and weighted outputs."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "Explain self-attention to a non-technical audience.",
+      "Why is long context expensive in transformer models?",
+      "Sketch a simplified transformer block."
+    ]
+  }
+}

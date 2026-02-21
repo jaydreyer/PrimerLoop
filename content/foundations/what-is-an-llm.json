@@ -1,0 +1,98 @@
+{
+  "subject_slug": "foundations",
+  "concept_slug": "what-is-an-llm",
+  "track": "FOUNDATIONS",
+  "difficulty": "beginner",
+  "version": 1,
+  "title": "What Is a Large Language Model (LLM)?",
+  "prerequisites": ["what-is-a-model"],
+  "lesson": {
+    "why_it_matters": "Most people interact with AI through Large Language Models (LLMs) like ChatGPT. Understanding what an LLM actually is helps you reason about its strengths, weaknesses, costs, and limitations.",
+    "core_idea": "A Large Language Model (LLM) is a neural network trained on massive amounts of text to predict the next token in a sequence. It learns statistical patterns in language and uses them to generate coherent responses.",
+    "mental_model": "An LLM is a very large neural network trained to do one core task extremely well: predict the next token given previous tokens. Everything else — conversation, reasoning-like behavior, summarization — emerges from that ability.",
+    "deep_dive": "LLMs are typically built using a neural network architecture called a transformer. During training, the model is shown enormous amounts of text and learns to predict the next token in billions or trillions of sequences.\n\nExample training objective:\nInput: \"The capital of France is\"\nTarget: \"Paris\"\n\nOver time, the model adjusts billions of weights to improve prediction accuracy.\n\nImportant nuance: LLMs do not store answers in a lookup table. Instead, they encode statistical relationships in their weights. When you ask a question, the model computes probabilities over possible next tokens and selects one based on sampling rules.\n\nScale matters. 'Large' refers to the number of parameters (weights) — often billions or more.",
+    "applied_example": "When you type into ChatGPT:\n\n\"Explain machine learning simply\"\n\nYour input is converted into tokens. The model processes those tokens through many transformer layers and predicts the next token. That token becomes part of the context, and the model predicts the next one again. This continues until the response is complete.\n\nIt is generating one token at a time, guided by learned probabilities.",
+    "failure_modes": "1) Hallucinations: Producing plausible but incorrect information.\n2) Context limits: Performance degrades when context windows are exceeded.\n3) Prompt sensitivity: Small input changes can produce different outputs.\n4) Overconfidence: Fluent language can mask uncertainty.",
+    "design_implications": "When building LLM-powered systems:\n- Control context length.\n- Verify critical outputs.\n- Use structured prompts.\n- Consider cost (tokens = money).\n- Add guardrails for safety.\n\nRemember: An LLM is a prediction engine, not a fact database.",
+    "interview_angle": "Interview-ready framing: “A Large Language Model is a transformer-based neural network trained at scale to predict the next token in a sequence. Its learned parameters encode statistical patterns from large corpora, enabling it to generate coherent text.”\n\nIf asked how it works: “Tokenize input → embed tokens → process through transformer layers → produce probability distribution over next token → sample → repeat.”",
+    "compression_summary": "An LLM is a very large neural network trained to predict the next token in text. It generates responses one token at a time using learned statistical patterns."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "What is the core task an LLM is trained to perform?",
+      "options": [
+        "Search the internet for answers",
+        "Memorize exact documents",
+        "Predict the next token in a sequence",
+        "Execute code instructions"
+      ],
+      "correct_index": 2,
+      "explanation": "LLMs are trained primarily to predict the next token given prior context."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "What does the 'Large' in LLM typically refer to?",
+      "options": [
+        "The number of users",
+        "The number of parameters (weights)",
+        "The size of the dataset alone",
+        "The length of responses"
+      ],
+      "correct_index": 1,
+      "explanation": "Large refers to the number of learned parameters in the model."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "How does an LLM generate a response?",
+      "options": [
+        "It retrieves a stored paragraph.",
+        "It predicts and samples one token at a time.",
+        "It uses hard-coded grammar rules.",
+        "It calls a search engine automatically."
+      ],
+      "correct_index": 1,
+      "explanation": "LLMs generate text by predicting one token at a time based on learned probabilities."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "Explain why LLMs can sound intelligent without truly understanding.",
+      "grading_notes": "Look for: statistical pattern learning; prediction-based; no inherent grounding; language fluency ≠ comprehension."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "Describe the high-level pipeline from user input to model output.",
+      "grading_notes": "Look for: tokenization; embeddings; transformer layers; probability distribution; sampling; iterative generation."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "What is the core training objective of an LLM?",
+      "back": "Predict the next token given prior context."
+    },
+    {
+      "front": "What makes an LLM 'large'?",
+      "back": "Billions of learned parameters (weights)."
+    },
+    {
+      "front": "How does an LLM generate text?",
+      "back": "By predicting and sampling one token at a time."
+    },
+    {
+      "front": "Do LLMs store answers directly?",
+      "back": "No. They encode statistical relationships in learned weights."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "Write a 3–4 sentence explanation of how an LLM generates text.",
+      "Explain why 'prediction' is the key word when describing LLM behavior.",
+      "List two limitations of LLMs and explain why they occur."
+    ]
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "subject_slug": "llm-app",
+  "concept_slug": "vector-databases",
+  "track": "LLM_APP",
+  "difficulty": "beginner",
+  "version": 1,
+  "title": "Vector Databases: Efficient Similarity Search at Scale",
+  "prerequisites": ["embeddings"],
+  "lesson": {
+    "why_it_matters": "Embeddings turn meaning into vectors. But storing and searching millions of vectors efficiently requires specialized indexing. Vector databases are built to perform fast similarity search across high-dimensional vectors.",
+    "core_idea": "A vector database stores embeddings and allows efficient similarity search using approximate nearest neighbor (ANN) algorithms. It is optimized for finding vectors that are close in high-dimensional space.",
+    "mental_model": "Imagine storing millions of points in a 1,536-dimensional space. A traditional database can store them — but it is not optimized to quickly find the closest points. A vector database builds special indexes to make nearest-neighbor search fast.",
+    "deep_dive": "Standard relational databases are optimized for structured queries:\n\nSELECT * FROM users WHERE id = 123;\n\nThey are not optimized for:\n\nSELECT documents WHERE embedding is closest to query_embedding;\n\nVector databases use indexing techniques like:\n- HNSW (Hierarchical Navigable Small World graphs)\n- IVF (Inverted File Index)\n\nThese allow approximate nearest neighbor (ANN) search, which trades tiny accuracy loss for major speed improvements.\n\nImportant: Vector search is about geometric distance, not exact matching.",
+    "applied_example": "You embed 1 million documents.\n\nUser question → embed → produce query vector.\n\nVector database:\n- Computes nearest neighbors.\n- Returns top 5 most similar chunks.\n\nThose chunks are passed to an LLM for generation.\n\nWithout ANN indexing, this would be computationally expensive.",
+    "failure_modes": "1) Using exact search on large vector sets (slow).\n2) Poor chunking reducing retrieval quality.\n3) Mixing embeddings from different models.\n4) Ignoring index rebuild when embeddings change.",
+    "design_implications": "Production considerations:\n- Choose an ANN index suited for dataset size.\n- Normalize vectors if required.\n- Monitor retrieval latency.\n- Store metadata alongside embeddings.\n\nVector databases enable scalable semantic retrieval, which is essential for RAG systems.",
+    "interview_angle": "Interview-ready framing: “Vector databases enable efficient approximate nearest neighbor search in high-dimensional embedding space. They are critical for scalable semantic retrieval in LLM applications.”\n\nIf pressed: “ANN indexing trades small precision loss for large performance gains.”",
+    "compression_summary": "Vector databases store embeddings and enable fast similarity search using specialized indexing algorithms."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "What is the main purpose of a vector database?",
+      "options": [
+        "Store relational tables",
+        "Execute SQL joins",
+        "Perform fast similarity search over embeddings",
+        "Train neural networks"
+      ],
+      "correct_index": 2,
+      "explanation": "Vector databases are optimized for nearest-neighbor similarity search."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "Why are ANN algorithms used?",
+      "options": [
+        "To eliminate embeddings",
+        "To improve exact match accuracy",
+        "To speed up nearest neighbor search",
+        "To compress data"
+      ],
+      "correct_index": 2,
+      "explanation": "Approximate nearest neighbor algorithms dramatically improve search speed at scale."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "What problem occurs if you mix embeddings from different models?",
+      "options": [
+        "Improved accuracy",
+        "Vectors may not be comparable in the same space",
+        "Reduced token usage",
+        "Faster retrieval"
+      ],
+      "correct_index": 1,
+      "explanation": "Different embedding models may produce vectors in different semantic spaces."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "Why is a traditional relational database not optimized for vector similarity search?",
+      "grading_notes": "Look for: high-dimensional distance computation; lack of ANN indexing; SQL designed for structured queries."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "Explain approximate nearest neighbor (ANN) in simple terms.",
+      "grading_notes": "Look for: approximate results; speed vs accuracy tradeoff; finding close vectors efficiently."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "What is a vector database optimized for?",
+      "back": "Fast similarity search in high-dimensional embedding space."
+    },
+    {
+      "front": "What does ANN stand for?",
+      "back": "Approximate Nearest Neighbor."
+    },
+    {
+      "front": "Why are vector databases important for RAG?",
+      "back": "They allow efficient retrieval of semantically similar documents."
+    },
+    {
+      "front": "Can Postgres store vectors?",
+      "back": "Yes, but without specialized indexing it is not optimized for large-scale similarity search."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "Explain the difference between relational queries and vector similarity search.",
+      "Describe ANN in one paragraph without using the word 'algorithm.'",
+      "Write a simple 4-step retrieval pipeline using embeddings and a vector database."
+    ]
+  }
+}

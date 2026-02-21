@@ -1,0 +1,98 @@
+{
+  "subject_slug": "foundations",
+  "concept_slug": "what-is-machine-learning",
+  "track": "FOUNDATIONS",
+  "difficulty": "beginner",
+  "version": 1,
+  "title": "What Is Machine Learning? Learning from Data Instead of Rules",
+  "prerequisites": ["what-is-ai"],
+  "lesson": {
+    "why_it_matters": "When people hear “AI,” they often imagine hand-written rules. But modern AI systems are not built by programming every behavior. Instead, they learn from data. Understanding machine learning explains how systems like ChatGPT, recommendation engines, and fraud detection models are actually created.",
+    "core_idea": "Machine Learning (ML) is a method of building AI systems where the model learns patterns from examples instead of being explicitly programmed with rules. Instead of telling the computer exactly what to do in every situation, we give it data and let it learn statistical relationships.",
+    "mental_model": "Traditional programming: Input → Rules → Output.\n\nMachine Learning: Input + Output examples → Training → Learned model → New input → Predicted output.\n\nIn ML, we don’t write the rules. The system discovers patterns that map inputs to outputs.",
+    "deep_dive": "In traditional software, engineers define logic step by step. For example, to detect spam emails, you might write rules like: “If subject contains ‘FREE’ and sender is unknown → mark as spam.”\n\nIn machine learning, you instead collect thousands or millions of labeled examples (spam / not spam). The system adjusts internal parameters (numbers) to reduce prediction error. Over time, it becomes good at distinguishing spam—even if it has never seen the exact message before.\n\nTraining is the process of adjusting parameters to minimize error. After training, the model can generalize to new data it hasn’t seen before.",
+    "applied_example": "Example 1 (recommendations): Netflix doesn’t manually program every movie suggestion. It trains models on user behavior patterns to predict what you’re likely to watch next.\n\nExample 2 (LLMs): Large Language Models are trained on massive text datasets. During training, they learn to predict the next token. That learning process is machine learning at scale.",
+    "failure_modes": "1) Overfitting: The model memorizes training data and performs poorly on new data.\n2) Underfitting: The model is too simple to capture real patterns.\n3) Data bias: If training data is biased, predictions will reflect that.\n4) Poor generalization: Performance drops when inputs differ from training data.",
+    "design_implications": "Good ML systems require:\n- Large, high-quality datasets\n- Clear evaluation metrics\n- Separation between training data and test data\n- Ongoing monitoring in production\n\nImportant insight: Improving ML systems often means improving data quality—not just changing the algorithm.",
+    "interview_angle": "Interview-ready framing: “Machine learning is a subset of AI where systems learn statistical patterns from data rather than relying on hand-coded rules. Training involves optimizing model parameters to minimize prediction error.”\n\nIf asked to compare: “Traditional programming encodes logic directly. Machine learning learns logic indirectly from examples.”",
+    "compression_summary": "Machine Learning is how modern AI is built. Instead of writing rules, we train models on data so they learn patterns and can make predictions on new inputs."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "What is the key difference between traditional programming and machine learning?",
+      "options": [
+        "Machine learning requires no data.",
+        "Traditional programming learns from examples.",
+        "Machine learning discovers patterns from data instead of using hand-written rules.",
+        "Traditional programming uses neural networks."
+      ],
+      "correct_index": 2,
+      "explanation": "In ML, the system learns patterns from examples. Traditional programming relies on explicit rules written by developers."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "What happens during training in machine learning?",
+      "options": [
+        "The model memorizes every example permanently.",
+        "The system adjusts internal parameters to reduce prediction error.",
+        "The engineer manually updates each rule.",
+        "The model searches the internet for answers."
+      ],
+      "correct_index": 1,
+      "explanation": "Training adjusts model parameters to minimize the difference between predictions and true labels."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "Which of the following is a common ML failure mode?",
+      "options": [
+        "Deterministic execution",
+        "Perfect generalization",
+        "Overfitting",
+        "Manual rule errors"
+      ],
+      "correct_index": 2,
+      "explanation": "Overfitting occurs when a model performs well on training data but poorly on new data."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "Explain in your own words why data quality is critical in machine learning systems.",
+      "grading_notes": "Look for: model learns from data; biased or noisy data leads to biased predictions; better data improves performance more than algorithm tweaks."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "Describe the difference between Input → Rules → Output and Input + Examples → Training → Model → Output.",
+      "grading_notes": "Look for: explicit rules vs learned parameters; training process; generalization to new inputs."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "What is machine learning?",
+      "back": "A way to build AI systems that learn patterns from data instead of using hand-written rules."
+    },
+    {
+      "front": "What happens during training?",
+      "back": "The model adjusts internal parameters to reduce prediction error."
+    },
+    {
+      "front": "What is overfitting?",
+      "back": "When a model performs well on training data but poorly on new, unseen data."
+    },
+    {
+      "front": "Why is data quality important?",
+      "back": "Because the model learns patterns from the data—bad data leads to bad predictions."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "Write a comparison between traditional programming and machine learning in 3–5 sentences.",
+      "Give one real-world example where machine learning is better than rule-based systems.",
+      "Describe one risk of relying on biased training data."
+    ]
+  }
+}

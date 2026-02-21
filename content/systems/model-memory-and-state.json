@@ -1,0 +1,101 @@
+{
+  "subject_slug": "systems",
+  "concept_slug": "model-memory-and-state",
+  "track": "CORE_TECH",
+  "difficulty": "intermediate",
+  "version": 1,
+  "title": "Model Memory & State: What the Model Remembers (and What It Doesn’t)",
+  "prerequisites": [
+    "training-vs-inference",
+    "tokens-context-and-sampling"
+  ],
+  "lesson": {
+    "why_it_matters": "Most confusion about AI comes from misunderstanding memory. People assume models remember past conversations like humans. They don’t. Memory in AI systems is engineered outside the model.",
+    "core_idea": "LLMs are stateless during inference. They only see the tokens in the current context window. Any 'memory' is recreated by sending prior information back into that window.",
+    "mental_model": "Think of the model like a brilliant but amnesiac expert. Every time you ask a question, you must remind it who you are and what has happened so far.",
+    "deep_dive": "There are three types of 'memory' in LLM systems:\n\n1) Context Memory\n   - Previous messages sent back with each request\n   - Lives inside the context window\n   - Temporary\n   - Lost when not re-sent\n\n2) External Memory (Application Layer)\n   - Stored in databases\n   - Can include notes, preferences, prior summaries\n   - Retrieved and injected into context\n\n3) Weight Memory (Training)\n   - What the model learned during training\n   - Permanent unless fine-tuned\n\nCritical point:\nThe model does not internally persist state between API calls.\n\nHow chat works technically:\n• User sends message\n• App includes previous messages\n• Model sees everything as one long token sequence\n• Generates next token probabilities\n\nIf previous messages are not included → model has no awareness.\n\nLong-term memory systems:\n• Store conversation summaries\n• Store embeddings of prior chats\n• Retrieve relevant pieces\n• Inject into context\n\nThis is engineered memory — not biological memory.",
+    "applied_example": "User says:\n\"Remember that I prefer short answers.\"\n\nIf the system does not store that preference externally and resend it later, the model will forget it in the next session.",
+    "failure_modes": "1) Believing the model has long-term memory by default.\n2) Confusing context window with database storage.\n3) Overfilling context with unnecessary history.\n4) Assuming chat UX equals persistent state.",
+    "design_implications": "If building an AI app:\n• Store user preferences in a database.\n• Summarize long chats.\n• Retrieve only relevant history.\n• Avoid replaying entire conversations.\n\nMemory design affects cost, latency, and quality.",
+    "interview_angle": "Strong answer: “LLMs are stateless during inference. Any memory must be reconstructed via context replay or external retrieval systems.”",
+    "compression_summary": "LLMs do not remember. Memory must be engineered outside the model."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "Are LLMs stateful between API calls?",
+      "options": [
+        "Yes",
+        "Only with temperature zero",
+        "No",
+        "Only if using embeddings"
+      ],
+      "correct_index": 2,
+      "explanation": "LLMs do not persist state between calls."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "Where does conversation history live?",
+      "options": [
+        "Inside the model permanently",
+        "In the context window when replayed",
+        "In the GPU memory automatically",
+        "In embeddings only"
+      ],
+      "correct_index": 1,
+      "explanation": "History is replayed into the context window."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "What provides long-term memory?",
+      "options": [
+        "Token sampling",
+        "Backpropagation during inference",
+        "External storage + retrieval",
+        "Lower temperature"
+      ],
+      "correct_index": 2,
+      "explanation": "External systems provide long-term memory."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "Explain why context replay is not true memory.",
+      "grading_notes": "Look for: temporary; not persistent; injected each call."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "Design a simple long-term memory architecture for an AI app.",
+      "grading_notes": "Look for: database storage; retrieval; context injection."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "Are LLMs stateful?",
+      "back": "No, they are stateless during inference."
+    },
+    {
+      "front": "What enables long-term memory?",
+      "back": "External storage and retrieval."
+    },
+    {
+      "front": "What is context replay?",
+      "back": "Resending prior messages into the context window."
+    },
+    {
+      "front": "Does chat UX equal memory?",
+      "back": "No."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "Explain model memory to someone non-technical.",
+      "Why must AI systems store memory externally?",
+      "What happens if conversation history is not replayed?"
+    ]
+  }
+}

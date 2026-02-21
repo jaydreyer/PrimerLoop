@@ -1,0 +1,98 @@
+{
+  "subject_slug": "llm-app",
+  "concept_slug": "rag",
+  "track": "LLM_APP",
+  "difficulty": "beginner",
+  "version": 1,
+  "title": "Retrieval-Augmented Generation (RAG): Giving the Model Fresh Information",
+  "prerequisites": ["vector-databases"],
+  "lesson": {
+    "why_it_matters": "LLMs are trained on historical data and have limited context windows. They cannot reliably know private company documents, recent updates, or domain-specific knowledge. RAG solves this by retrieving relevant information at runtime and injecting it into the prompt.",
+    "core_idea": "Retrieval-Augmented Generation (RAG) combines semantic retrieval with language generation. The system retrieves relevant documents using embeddings, then includes those documents in the context before asking the LLM to generate a response.",
+    "mental_model": "Think of RAG as giving the model an open-book exam. Instead of relying only on what it learned during training, it is allowed to consult relevant documents before answering.",
+    "deep_dive": "Basic RAG pipeline:\n\n1) User submits query.\n2) Query is converted into an embedding.\n3) Vector database retrieves the most similar document chunks.\n4) Retrieved chunks are inserted into the prompt.\n5) LLM generates an answer using those chunks.\n\nImportant distinction:\n- The model is not retrained.\n- The documents are not stored inside the model.\n- The documents are temporarily included in the context window.\n\nRAG improves factual grounding and reduces hallucinations when retrieval quality is strong.",
+    "applied_example": "Example: Internal HR assistant.\n\nUser asks: \"What is our parental leave policy?\"\n\nSystem:\n- Embeds the question.\n- Retrieves relevant policy documents.\n- Inserts them into the prompt.\n- LLM generates answer using those documents.\n\nWithout RAG, the model might hallucinate generic policy information.",
+    "failure_modes": "1) Retrieving irrelevant chunks (bad chunking or embeddings).\n2) Overloading context with too many documents.\n3) Prompt not clearly instructing model to use retrieved sources.\n4) Treating RAG as a guarantee of truth without evaluation.",
+    "design_implications": "Best practices:\n- Use high-quality chunking strategies.\n- Retrieve a small number of highly relevant documents.\n- Clearly instruct the model to base answers on retrieved context.\n- Consider citing sources.\n\nRAG improves reliability but depends heavily on retrieval quality.",
+    "interview_angle": "Interview-ready framing: “RAG enhances LLM outputs by retrieving relevant documents via embedding similarity search and injecting them into the model’s context before generation.”\n\nIf asked RAG vs fine-tuning: “RAG supplies new information at runtime; fine-tuning changes the model’s learned behavior.”",
+    "compression_summary": "RAG retrieves relevant documents using embeddings and feeds them into the LLM’s context so the model can generate grounded responses."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "What does RAG primarily solve?",
+      "options": [
+        "Increasing model size",
+        "Providing fresh or domain-specific information at runtime",
+        "Reducing training cost",
+        "Eliminating token limits"
+      ],
+      "correct_index": 1,
+      "explanation": "RAG allows systems to retrieve relevant information at runtime instead of relying solely on training data."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "Does RAG modify the model’s weights?",
+      "options": [
+        "Yes, during retrieval",
+        "Yes, during generation",
+        "No, it supplies information via context",
+        "Only sometimes"
+      ],
+      "correct_index": 2,
+      "explanation": "RAG injects information into the prompt; it does not retrain the model."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "What role do embeddings play in RAG?",
+      "options": [
+        "Generating final text",
+        "Reducing temperature",
+        "Enabling semantic retrieval of relevant documents",
+        "Extending context window size"
+      ],
+      "correct_index": 2,
+      "explanation": "Embeddings enable similarity search to retrieve relevant documents."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "Explain the difference between RAG and fine-tuning.",
+      "grading_notes": "Look for: RAG adds info at runtime; fine-tuning changes model weights; knowledge vs behavior distinction."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "Describe a scenario where RAG would significantly improve answer quality.",
+      "grading_notes": "Look for: domain-specific documents; internal knowledge base; recent information."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "What does RAG stand for?",
+      "back": "Retrieval-Augmented Generation."
+    },
+    {
+      "front": "Does RAG retrain the model?",
+      "back": "No. It injects retrieved documents into the context."
+    },
+    {
+      "front": "What enables document retrieval in RAG?",
+      "back": "Embeddings and vector similarity search."
+    },
+    {
+      "front": "RAG vs Fine-Tuning?",
+      "back": "RAG provides new information; fine-tuning changes model behavior."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "Draw the 5-step RAG pipeline.",
+      "Explain why retrieval quality is critical for RAG success.",
+      "Compare RAG and fine-tuning in 4–5 sentences."
+    ]
+  }
+}

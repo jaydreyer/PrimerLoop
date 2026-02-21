@@ -1,0 +1,98 @@
+{
+  "subject_slug": "llm-app",
+  "concept_slug": "llm-evaluation-and-metrics",
+  "track": "LLM_APP",
+  "difficulty": "intermediate",
+  "version": 1,
+  "title": "LLM Evaluation & Metrics: Measuring Model Performance",
+  "prerequisites": ["hallucinations-and-guardrails"],
+  "lesson": {
+    "why_it_matters": "If you cannot measure performance, you cannot improve it. LLM systems require structured evaluation to ensure accuracy, safety, consistency, and usefulness.",
+    "core_idea": "LLM evaluation measures how well a model performs on specific tasks. Because outputs are open-ended, evaluation often combines automated metrics with human review.",
+    "mental_model": "Think of evaluation like unit testing for language systems. You define expected behavior, then test whether outputs match that expectation under controlled conditions.",
+    "deep_dive": "Evaluation types:\n\n1) Accuracy-based tasks\n   Used for classification or structured outputs.\n   Metrics: accuracy, precision, recall, F1.\n\n2) Text similarity metrics\n   Compare generated text to reference answers.\n   Examples: BLEU, ROUGE.\n   Limitation: surface similarity ≠ semantic correctness.\n\n3) Embedding-based semantic similarity\n   Compare meaning instead of exact words.\n\n4) Human evaluation\n   Humans rate helpfulness, clarity, safety, reasoning quality.\n\n5) Task-specific evaluation\n   - Retrieval accuracy (RAG systems)\n   - Tool call correctness\n   - JSON schema validity\n\n6) Adversarial testing\n   Stress-test for prompt injection or unsafe outputs.\n\nKey challenge:\nLanguage is subjective. Two correct answers may look different. Evaluation must account for acceptable variation.",
+    "applied_example": "For a RAG customer-support bot:\n\nYou measure:\n- Retrieval accuracy (did it fetch the correct document?)\n- Answer groundedness (does response cite source?)\n- Factual correctness\n- JSON validity if structured\n\nYou cannot rely on BLEU score alone because wording may differ.",
+    "failure_modes": "1) Using only surface-level metrics (BLEU/ROUGE).\n2) Not evaluating safety separately.\n3) Testing only ideal prompts.\n4) No regression testing after prompt changes.",
+    "design_implications": "Production systems should:\n- Maintain evaluation datasets.\n- Run automated regression tests.\n- Track hallucination rate.\n- Log model failures.\n- Include human review loops.",
+    "interview_angle": "Strong answer: “LLM evaluation combines automated metrics with human judgment because open-ended generation makes simple accuracy insufficient. Production systems require regression tests and task-specific evaluation.”",
+    "compression_summary": "LLM evaluation measures accuracy, safety, and usefulness using automated metrics plus human review."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "Why is BLEU insufficient alone for evaluating LLM outputs?",
+      "options": [
+        "It measures token count",
+        "It only measures surface similarity, not semantic correctness",
+        "It increases hallucinations",
+        "It requires embeddings"
+      ],
+      "correct_index": 1,
+      "explanation": "BLEU compares surface overlap but does not guarantee meaning accuracy."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "Which metric is most useful for classification tasks?",
+      "options": [
+        "ROUGE",
+        "Accuracy / F1",
+        "Temperature",
+        "Context length"
+      ],
+      "correct_index": 1,
+      "explanation": "Classification tasks use traditional metrics like accuracy and F1."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "Why is human evaluation important?",
+      "options": [
+        "Because models cannot generate text",
+        "Because open-ended outputs require qualitative judgment",
+        "Because embeddings are inaccurate",
+        "Because JSON must be validated"
+      ],
+      "correct_index": 1,
+      "explanation": "Human review captures nuance and quality beyond automated metrics."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "Explain why regression testing matters for LLM prompts.",
+      "grading_notes": "Look for: prompt changes affect behavior; need consistent performance; automated test sets."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "Describe how you would evaluate a RAG system.",
+      "grading_notes": "Look for: retrieval accuracy, grounding, factual correctness, safety checks."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "Why is LLM evaluation difficult?",
+      "back": "Outputs are open-ended and may have multiple valid answers."
+    },
+    {
+      "front": "What is regression testing?",
+      "back": "Re-running evaluation tests after changes to ensure performance remains stable."
+    },
+    {
+      "front": "Most common text similarity metrics?",
+      "back": "BLEU and ROUGE."
+    },
+    {
+      "front": "Why combine automated and human evaluation?",
+      "back": "Automated metrics lack full semantic and qualitative judgment."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "Design an evaluation plan for a RAG chatbot.",
+      "List 3 limitations of automated LLM metrics.",
+      "Explain why evaluation must include safety testing."
+    ]
+  }
+}

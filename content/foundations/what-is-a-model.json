@@ -1,0 +1,98 @@
+{
+  "subject_slug": "foundations",
+  "concept_slug": "what-is-a-model",
+  "track": "FOUNDATIONS",
+  "difficulty": "beginner",
+  "version": 1,
+  "title": "What Is a Model? The Learned Pattern Itself",
+  "prerequisites": ["neural-networks"],
+  "lesson": {
+    "why_it_matters": "People often confuse 'AI', 'algorithm', 'architecture', and 'model.' In interviews and system design discussions, being precise matters. A model is the trained artifact — the learned numerical representation that can make predictions.",
+    "core_idea": "A model is the trained system that has learned patterns from data. It consists of parameters (weights) that were adjusted during training. When you run inference, you are using a trained model to make predictions.",
+    "mental_model": "Think of a model as a frozen brain snapshot. Training shapes it. After training, the learned weights are saved. That saved set of weights — combined with its architecture — is the model.",
+    "deep_dive": "Key distinctions:\n\n• Algorithm – The training method (e.g., gradient descent).\n• Architecture – The structure of the network (e.g., transformer, CNN).\n• Model – The trained instance of that architecture with learned weights.\n• Dataset – The data used to train the model.\n• Checkpoint – A saved version of a model’s weights at a point in training.\n\nExample: GPT-4 is not just an architecture. It is a trained transformer model with specific learned weights.\n\nImportant: Two models can share the same architecture but behave differently because they were trained on different data or fine-tuned differently.",
+    "applied_example": "Imagine two identical neural network architectures.\n\nModel A trained on medical texts.\nModel B trained on cooking recipes.\n\nSame architecture — different models — different behavior.\n\nThe difference is the learned weights.",
+    "failure_modes": "1) Confusing architecture with model.\n2) Assuming models 'contain facts' instead of learned statistical patterns.\n3) Believing models update themselves automatically during use (most do not unless explicitly retrained).",
+    "design_implications": "When deploying AI systems, you must track:\n- Model version\n- Training data source\n- Evaluation metrics\n- Checkpoint history\n\nIn production, you rarely modify a model live. You train a new model and deploy a new version.",
+    "interview_angle": "Interview-ready framing: “A model is a trained instance of an architecture whose parameters were optimized on data. The learned weights encode statistical patterns that allow the system to generalize to new inputs.”\n\nIf pressed: “Architecture defines structure; training defines behavior.”",
+    "compression_summary": "A model is the trained artifact — the architecture plus learned weights that can make predictions. Training shapes it; inference uses it."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "What is a model in machine learning?",
+      "options": [
+        "The dataset used for training",
+        "The trained system containing learned weights",
+        "The optimization algorithm",
+        "The programming language used"
+      ],
+      "correct_index": 1,
+      "explanation": "A model is the trained system with learned parameters that can perform inference."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "What distinguishes two models built from the same architecture?",
+      "options": [
+        "The programming language",
+        "The number of users",
+        "The learned weights and training data",
+        "The size of the company"
+      ],
+      "correct_index": 2,
+      "explanation": "Two models can share architecture but differ in training data and learned weights."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "What is a checkpoint?",
+      "options": [
+        "A security review",
+        "A saved snapshot of model weights during training",
+        "A type of dataset",
+        "A hyperparameter"
+      ],
+      "correct_index": 1,
+      "explanation": "A checkpoint is a saved version of model weights at a point in training."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "Explain the difference between architecture and model.",
+      "grading_notes": "Look for: architecture = structure; model = trained instance with weights; behavior shaped by data."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "Why can two models with the same architecture behave differently?",
+      "grading_notes": "Look for: different training data; different fine-tuning; different learned parameters."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "What is a model?",
+      "back": "A trained system consisting of architecture plus learned weights."
+    },
+    {
+      "front": "What defines a model’s behavior?",
+      "back": "The learned weights shaped by training data."
+    },
+    {
+      "front": "Architecture vs model?",
+      "back": "Architecture defines structure; the model is the trained instance with specific weights."
+    },
+    {
+      "front": "What is inference?",
+      "back": "Using a trained model to make predictions on new input."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "Define 'model' in one sentence without using the word 'AI.'",
+      "Explain why versioning models is critical in production systems.",
+      "Describe how architecture and training interact to produce behavior."
+    ]
+  }
+}

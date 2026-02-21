@@ -1,0 +1,98 @@
+{
+  "subject_slug": "llm-app",
+  "concept_slug": "embeddings",
+  "track": "LLM_APP",
+  "difficulty": "beginner",
+  "version": 1,
+  "title": "Embeddings: Turning Meaning Into Vectors",
+  "prerequisites": ["tokens"],
+  "lesson": {
+    "why_it_matters": "LLMs generate text, but embeddings allow systems to search, retrieve, cluster, and compare meaning. Embeddings are the foundation of semantic search and Retrieval-Augmented Generation (RAG). Without embeddings, LLM apps cannot efficiently find relevant information.",
+    "core_idea": "An embedding is a numerical vector that represents the meaning of a piece of text. Similar texts produce similar vectors. This allows machines to measure semantic similarity mathematically.",
+    "mental_model": "Think of embeddings as coordinates on a map of meaning. Each sentence becomes a point in high-dimensional space. Sentences with similar meaning are located near each other.",
+    "deep_dive": "When text is processed by an embedding model, it is converted into a fixed-length vector — for example, a 1,536-dimensional array of numbers.\n\nExample:\n\"I love dogs\" → [0.12, -0.88, 0.43, ...]\n\n\"I adore puppies\" → [0.10, -0.84, 0.47, ...]\n\nEven though the words differ, the vectors are close in space because the meanings are similar.\n\nKey concept: distance between vectors (often cosine similarity) measures semantic similarity.\n\nImportant distinction: Embeddings do not generate text. They encode meaning into numbers.",
+    "applied_example": "Example: You store embeddings for thousands of support documents.\n\nUser asks: \"How do I reset my password?\"\n\nYou embed the user question, compare it against stored document embeddings, and retrieve the closest matches.\n\nThe LLM then uses those retrieved documents to generate an answer.",
+    "failure_modes": "1) Poor chunking leading to irrelevant retrieval.\n2) Using wrong embedding model for domain.\n3) Assuming embeddings contain factual truth.\n4) Ignoring vector normalization when computing similarity.",
+    "design_implications": "Best practices:\n- Chunk documents into meaningful sections.\n- Store embeddings in a vector database.\n- Use cosine similarity or dot product for comparison.\n- Keep embeddings consistent (don’t mix models without re-embedding).\n\nEmbeddings enable scalable retrieval across large document collections.",
+    "interview_angle": "Interview-ready framing: “Embeddings map text into high-dimensional vector space where semantic similarity corresponds to geometric proximity. They are used for semantic search, clustering, and retrieval pipelines in LLM applications.”\n\nIf pressed: “Distance metrics like cosine similarity quantify semantic closeness.”",
+    "compression_summary": "Embeddings convert meaning into numerical vectors. Similar meaning → similar vectors. They power semantic search and RAG systems."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "What is an embedding?",
+      "options": [
+        "A generated paragraph of text",
+        "A numerical vector representing meaning",
+        "A database query",
+        "A training algorithm"
+      ],
+      "correct_index": 1,
+      "explanation": "Embeddings convert text into numerical vectors representing semantic meaning."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "Why are embeddings useful in search systems?",
+      "options": [
+        "They store exact keyword matches",
+        "They measure semantic similarity",
+        "They increase context window size",
+        "They reduce token count"
+      ],
+      "correct_index": 1,
+      "explanation": "Embeddings allow systems to compare meaning rather than exact word matches."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "What metric is commonly used to measure similarity between embeddings?",
+      "options": [
+        "Euclidean distance only",
+        "Cosine similarity",
+        "Hash matching",
+        "Temperature scaling"
+      ],
+      "correct_index": 1,
+      "explanation": "Cosine similarity is widely used to measure semantic closeness between vectors."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "Explain why two different sentences can have similar embeddings.",
+      "grading_notes": "Look for: semantic similarity; vector closeness; meaning not exact wording."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "Describe how embeddings are used in a document retrieval system.",
+      "grading_notes": "Look for: embed query; compare to stored vectors; retrieve closest; pass to LLM."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "What does an embedding represent?",
+      "back": "The semantic meaning of text encoded as a numerical vector."
+    },
+    {
+      "front": "What does cosine similarity measure?",
+      "back": "The closeness of two vectors in semantic space."
+    },
+    {
+      "front": "Do embeddings generate text?",
+      "back": "No. They encode meaning for comparison and retrieval."
+    },
+    {
+      "front": "Why are embeddings important for RAG?",
+      "back": "They enable semantic search to retrieve relevant documents."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "Explain embeddings using the 'map of meaning' analogy.",
+      "Describe the difference between keyword search and embedding-based search.",
+      "Write a 3-step pipeline for retrieval using embeddings."
+    ]
+  }
+}

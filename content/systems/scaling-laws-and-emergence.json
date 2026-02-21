@@ -1,0 +1,100 @@
+{
+  "subject_slug": "systems",
+  "concept_slug": "scaling-laws-and-emergence",
+  "track": "CORE_TECH",
+  "difficulty": "advanced",
+  "version": 1,
+  "title": "Scaling Laws & Emergence: Why Bigger Models Work",
+  "prerequisites": [
+    "transformer-architecture-and-attention"
+  ],
+  "lesson": {
+    "why_it_matters": "Modern AI progress is largely driven by scaling: more parameters, more data, more compute. Understanding scaling laws explains why performance improves predictably — and why costs explode.",
+    "core_idea": "Scaling laws show that model performance improves in a predictable way as parameters, data, and compute increase.",
+    "mental_model": "Think of training a model like teaching a student. A small student with limited exposure learns basic patterns. A massive student with billions of examples learns deeper abstractions.",
+    "deep_dive": "Scaling laws discovered that:\n\nPerformance ≈ Power-law relationship with:\n• Model size (parameters)\n• Dataset size\n• Training compute\n\nAs these increase, loss decreases smoothly and predictably.\n\nKey insights:\n\n1) Bigger models learn better representations.\n\n2) More data prevents overfitting.\n\n3) Compute must scale proportionally.\n\n4) There is an optimal balance between parameters and data.\n\nEmergence:\nCertain abilities appear suddenly at larger scales:\n• Multi-step reasoning\n• Code generation\n• Tool use capability\n• Chain-of-thought reasoning\n\nThese were not explicitly programmed.\nThey emerged from scale.\n\nImportant nuance:\nScaling does not mean infinite improvement.\nEventually:\n• Data quality limits matter\n• Architecture matters\n• Efficiency matters\n\nCost implications:\nTraining cost grows massively.\nInference cost grows with model size.\n\nThis is why smaller optimized models exist.",
+    "applied_example": "GPT-2 struggled with reasoning.\nGPT-3 suddenly showed few-shot learning.\nGPT-4 demonstrated stronger reasoning and planning.\n\nThe architecture didn’t radically change.\nScale did.",
+    "failure_modes": "1) Assuming scale alone solves safety.\n2) Ignoring diminishing returns.\n3) Underestimating inference cost.\n4) Believing emergence equals intelligence.",
+    "design_implications": "Production decisions must consider:\n• Cost vs performance tradeoffs\n• Model selection\n• Latency constraints\n• Whether scaling or retrieval is the better solution\n\nScaling is powerful — but not free.",
+    "interview_angle": "Strong answer: “Scaling laws show predictable performance improvements as model size, data, and compute increase. Certain capabilities emerge at scale, but costs and diminishing returns must be managed.”",
+    "compression_summary": "Bigger models trained on more data improve predictably — and sometimes unlock new capabilities."
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "What do scaling laws describe?",
+      "options": [
+        "How embeddings are generated",
+        "How model performance improves with size, data, and compute",
+        "How prompts affect output",
+        "How attention is calculated"
+      ],
+      "correct_index": 1,
+      "explanation": "Scaling laws describe performance trends relative to size and compute."
+    },
+    {
+      "id": "q2",
+      "type": "mcq",
+      "question": "What is emergence?",
+      "options": [
+        "A training bug",
+        "New abilities appearing at larger scale",
+        "Token compression",
+        "Sampling instability"
+      ],
+      "correct_index": 1,
+      "explanation": "Emergent capabilities arise when models reach sufficient scale."
+    },
+    {
+      "id": "q3",
+      "type": "mcq",
+      "question": "What must scale alongside parameters?",
+      "options": [
+        "Temperature",
+        "Sampling rate",
+        "Training data and compute",
+        "Context window"
+      ],
+      "correct_index": 2,
+      "explanation": "Data and compute must increase proportionally."
+    },
+    {
+      "id": "q4",
+      "type": "short",
+      "question": "Explain why larger models sometimes unlock new capabilities.",
+      "grading_notes": "Look for: representation learning; complexity; threshold effects; emergent behavior."
+    },
+    {
+      "id": "q5",
+      "type": "short",
+      "question": "Why is scaling not a complete solution to AI progress?",
+      "grading_notes": "Look for: cost; diminishing returns; architecture limits; data quality."
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "What do scaling laws show?",
+      "back": "Performance improves predictably with model size, data, and compute."
+    },
+    {
+      "front": "What is emergence?",
+      "back": "New capabilities appearing at larger model scales."
+    },
+    {
+      "front": "Does scaling solve safety automatically?",
+      "back": "No."
+    },
+    {
+      "front": "Tradeoff of scaling?",
+      "back": "Massive compute and inference cost."
+    }
+  ],
+  "notebook_template": {
+    "prompts": [
+      "Explain scaling laws to a product manager.",
+      "Describe emergence in simple terms.",
+      "When would you choose a smaller model instead of a larger one?"
+    ]
+  }
+}
