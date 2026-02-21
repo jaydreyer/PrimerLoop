@@ -8,6 +8,7 @@ import { PROMPT_FILES } from "./prompts";
 import { createSupabaseUserServer } from "./supabaseUserServer";
 import { requireLlmApiKey } from "./env.server";
 import { NotebookEntrySchema, type NotebookEntry } from "./notebook";
+import contentSlugAliases from "../config/content-slug-aliases.json";
 
 export type GeneratedAssetType = "lesson" | "quiz" | "notebook_template";
 
@@ -265,11 +266,39 @@ function normalizeLookupKey(value: string): string {
   return value.trim().toLowerCase();
 }
 
+const slugAliasMap = Object.entries(contentSlugAliases).reduce((acc, [source, target]) => {
+  const sourceKey = normalizeLookupKey(source);
+  const targetKey = normalizeLookupKey(target);
+  if (sourceKey && targetKey) {
+    acc.set(sourceKey, targetKey);
+  }
+  return acc;
+}, new Map<string, string>());
+
 function slugFromConceptName(name: string): string {
   return normalizeLookupKey(name)
     .replace(/&/g, " and ")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+function expandSlugCandidates(candidates: string[]): string[] {
+  const expanded: string[] = [];
+  const seen = new Set<string>();
+
+  for (const candidate of candidates) {
+    if (!candidate || seen.has(candidate)) continue;
+    seen.add(candidate);
+    expanded.push(candidate);
+
+    const aliasTarget = slugAliasMap.get(candidate);
+    if (aliasTarget && !seen.has(aliasTarget)) {
+      seen.add(aliasTarget);
+      expanded.push(aliasTarget);
+    }
+  }
+
+  return expanded;
 }
 
 function dedupeStrings(values: string[]): string[] {
@@ -451,7 +480,9 @@ async function getCuratedConceptContent(input: {
     .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
     .map((value) => normalizeLookupKey(value));
 
-  for (const slugKey of slugCandidates) {
+  const expandedSlugCandidates = expandSlugCandidates(slugCandidates);
+
+  for (const slugKey of expandedSlugCandidates) {
     const hit = index.bySlug.get(slugKey);
     if (hit) return hit;
   }

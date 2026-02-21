@@ -37,7 +37,7 @@ describe("generateLessonContent structure", () => {
     expect((workedExample?.bullets ?? []).join(" ")).toMatch(/\d/);
   });
 
-  it("enforces tokens/context-only fallback for tokens-context slug", async () => {
+  it("resolves legacy tokens-context slug to curated tokens content", async () => {
     const previousKey = process.env.LLM_API_KEY;
     process.env.LLM_API_KEY = "";
 
@@ -62,15 +62,14 @@ describe("generateLessonContent structure", () => {
       .join(" ")
       .toLowerCase();
 
-    expect(text).toContain("tokenization example");
-    expect(text).toContain("context truncation example");
-    expect(text).toContain("cost math example");
-    expect(text).not.toContain("temperature");
-    expect(text).not.toContain("top-p");
-    expect(text).not.toContain("greedy");
+    expect(lesson.title).toBe("Tokens: How Text Becomes Numbers");
+    expect(text).toContain("llms do not read words");
+    expect(text).toContain("the model predicts the next token");
+    expect(text).toContain("token ids");
+    expect(text).not.toContain("cost math example");
   });
 
-  it("covers sampling controls for sampling-generation slug", async () => {
+  it("resolves legacy sampling-generation slug to curated sampling content", async () => {
     const previousKey = process.env.LLM_API_KEY;
     process.env.LLM_API_KEY = "";
 
@@ -95,12 +94,11 @@ describe("generateLessonContent structure", () => {
       .join(" ")
       .toLowerCase();
 
-    expect(text).toContain("next-token prediction");
-    expect(text).toContain("greedy decoding");
+    expect(lesson.title).toBe("Sampling: How the Model Chooses the Next Token");
+    expect(text).toContain("probability distribution");
     expect(text).toContain("temperature");
     expect(text).toContain("top-p");
-    expect(text).toContain("determinism");
-    expect(text).toContain("high temperature");
-    expect(text).toContain("they differ because");
+    expect(text).toContain("top-k");
+    expect(text).not.toContain("they differ because");
   });
 });

@@ -4,6 +4,7 @@ import path from "node:path";
 const REPO_ROOT = process.cwd();
 const SEED_PATH = path.join(REPO_ROOT, "supabase", "seed.sql");
 const CONTENT_ROOT = path.join(REPO_ROOT, "content");
+const SLUG_ALIAS_PATH = path.join(REPO_ROOT, "config", "content-slug-aliases.json");
 
 function extractSeedConceptSlugs(seedSql) {
   const insertStart = seedSql.indexOf("insert into concepts");
@@ -90,6 +91,14 @@ function logList(title, values) {
 
 async function main() {
   const seedSql = await readFile(SEED_PATH, "utf8");
+  const slugAliasRaw = JSON.parse(await readFile(SLUG_ALIAS_PATH, "utf8"));
+  const slugAliasMap = new Map(
+    Object.entries(slugAliasRaw).map(([source, target]) => [
+      String(source).trim().toLowerCase(),
+      String(target).trim().toLowerCase(),
+    ]),
+  );
+
   const seedSlugs = extractSeedConceptSlugs(seedSql);
   const { slugs: contentSlugsWithPath, invalidFiles } = await extractContentConceptSlugs(CONTENT_ROOT);
   const contentSlugs = contentSlugsWithPath.map((entry) => entry.slug);
@@ -100,27 +109,53 @@ async function main() {
   const seedSet = new Set(seedUnique);
   const contentSet = new Set(contentUnique);
 
-  const onlyInSeed = seedUnique.filter((slug) => !contentSet.has(slug));
+  const seedWithResolvedTargets = seedUnique.map((slug) => {
+    const source = slug.toLowerCase();
+    const alias = slugAliasMap.get(source) ?? null;
+    return {
+      seedSlug: slug,
+      resolvedSlug: alias ?? source,
+      alias,
+    };
+  });
+
+  const onlyInSeed = seedWithResolvedTargets
+    .filter((entry) => !contentSet.has(entry.resolvedSlug))
+    .map((entry) => entry.seedSlug);
   const onlyInContent = contentUnique.filter((slug) => !seedSet.has(slug));
   const duplicateSeed = findDuplicates(seedSlugs);
   const duplicateContent = findDuplicates(contentSlugs);
+  const aliasTargetsMissing = [...slugAliasMap.entries()]
+    .filter(([, target]) => !contentSet.has(target))
+    .map(([source, target]) => `${source} -> ${target}`);
+
+  const aliasApplied = seedWithResolvedTargets
+    .filter((entry) => entry.alias !== null)
+    .map((entry) => `${entry.seedSlug} -> ${entry.alias}`);
+  const resolvedSeedTargets = new Set(seedWithResolvedTargets.map((entry) => entry.resolvedSlug));
+  const onlyInContentAfterAlias = contentUnique.filter((slug) => !resolvedSeedTargets.has(slug));
 
   console.log("Slug audit summary:");
   console.log(`- seed concept slugs: ${seedSlugs.length} (${seedUnique.length} unique)`);
   console.log(`- content concept slugs: ${contentSlugs.length} (${contentUnique.length} unique)`);
   console.log(`- invalid content files: ${invalidFiles.length}`);
+  console.log(`- alias mappings configured: ${slugAliasMap.size}`);
+  console.log(`- alias mappings applied to seed slugs: ${aliasApplied.length}`);
 
   logList("Only in seed.sql", onlyInSeed);
   logList("Only in content", onlyInContent);
+  logList("Only in content (after alias resolution)", onlyInContentAfterAlias);
   logList("Duplicate slugs in seed.sql", duplicateSeed);
   logList("Duplicate slugs in content", duplicateContent);
+  logList("Alias targets missing in content", aliasTargetsMissing);
+  logList("Applied aliases", aliasApplied);
   logList("Invalid content files", invalidFiles);
 
   const hasMismatch =
     onlyInSeed.length > 0 ||
-    onlyInContent.length > 0 ||
     duplicateSeed.length > 0 ||
     duplicateContent.length > 0 ||
+    aliasTargetsMissing.length > 0 ||
     invalidFiles.length > 0;
 
   if (hasMismatch) {
