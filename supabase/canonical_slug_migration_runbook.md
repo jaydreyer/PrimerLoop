@@ -54,7 +54,8 @@ npm run audit:content-slugs
 2. Run exactly as-is (dry run; ends with `rollback;`).
 3. Review result sets:
 - Preflight A (missing source rows) should be empty or expected.
-- Preflight B should clearly show survivor + loser IDs per target slug.
+- Preflight B (existing canonical target rows) is informational; if populated, those IDs are preferred as survivors.
+- Preflight C should clearly show survivor + loser IDs per target slug.
 - Post-check unresolved source slugs should be empty in a commit scenario.
 4. If dry-run outputs are correct, switch bottom lines:
 - change `rollback;` to `-- rollback;`

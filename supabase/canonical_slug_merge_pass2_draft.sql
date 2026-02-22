@@ -6,7 +6,8 @@
 --
 -- Safety:
 --   - Dry run by default (ROLLBACK at bottom).
---   - Survivor concept is selected deterministically by earliest created_at, then concept_id.
+--   - Survivor concept selection prefers an existing canonical target slug, otherwise
+--     earliest created_at source concept (then concept_id).
 --   - Foreign key references are remapped before loser concepts are deleted.
 
 begin;
@@ -51,13 +52,52 @@ from _merge_candidates
 where concept_id is null
 order by target_slug, source_slug;
 
+create temp table _merge_targets_with_sources on commit drop as
+select distinct target_slug
+from _merge_candidates
+where concept_id is not null;
+
+create temp table _merge_existing_targets on commit drop as
+select
+  t.target_slug,
+  c.id as concept_id,
+  c.created_at
+from _merge_targets_with_sources t
+join concepts c
+  on c.slug = t.target_slug;
+
+-- Preflight B: canonical target rows already present.
+select
+  target_slug,
+  concept_id as existing_target_concept_id
+from _merge_existing_targets
+order by target_slug, concept_id;
+
 create temp table _merge_survivors on commit drop as
 select distinct on (target_slug)
   target_slug,
   concept_id as survivor_id
-from _merge_candidates
-where concept_id is not null
-order by target_slug, created_at asc nulls last, concept_id;
+from (
+  select
+    target_slug,
+    concept_id,
+    created_at,
+    0 as survivor_priority
+  from _merge_existing_targets
+  union all
+  select
+    target_slug,
+    concept_id,
+    created_at,
+    1 as survivor_priority
+  from _merge_candidates
+  where concept_id is not null
+) survivor_pool
+order by
+  target_slug,
+  survivor_priority asc,
+  created_at asc nulls last,
+  concept_id;
 
 create temp table _merge_map on commit drop as
 select
@@ -75,7 +115,7 @@ select survivor_id as concept_id from _merge_survivors
 union
 select loser_id as concept_id from _merge_map;
 
--- Preflight B: survivor/loser plan
+-- Preflight C: survivor/loser plan
 select
   s.target_slug,
   s.survivor_id,
@@ -96,8 +136,10 @@ left join _merge_map m1
   on m1.loser_id = cp.concept_id
 left join _merge_map m2
   on m2.loser_id = cp.prerequisite_concept_id
-where cp.concept_id in (select concept_id from _affected_concepts)
+where (
+  cp.concept_id in (select concept_id from _affected_concepts)
    or cp.prerequisite_concept_id in (select concept_id from _affected_concepts)
+)
   and coalesce(m1.survivor_id, cp.concept_id) <> coalesce(m2.survivor_id, cp.prerequisite_concept_id)
 on conflict (concept_id, prerequisite_concept_id) do nothing;
 
@@ -200,7 +242,11 @@ on conflict (user_id, subject_id, concept_id) do update
 set
   mastery_score = greatest(user_concept_mastery.mastery_score, excluded.mastery_score),
   review_count = greatest(user_concept_mastery.review_count, excluded.review_count),
-  last_attempt_at = greatest(user_concept_mastery.last_attempt_at, excluded.last_attempt_at),
+  last_attempt_at = case
+    when user_concept_mastery.last_attempt_at is null then excluded.last_attempt_at
+    when excluded.last_attempt_at is null then user_concept_mastery.last_attempt_at
+    else greatest(user_concept_mastery.last_attempt_at, excluded.last_attempt_at)
+  end,
   next_review_at = case
     when user_concept_mastery.next_review_at is null then excluded.next_review_at
     when excluded.next_review_at is null then user_concept_mastery.next_review_at
